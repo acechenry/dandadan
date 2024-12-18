@@ -1,4 +1,4 @@
-/* 主题变量 */
+/* 容器基础样式 */
 .container {
   min-height: 100vh;
   width: 100vw;
@@ -13,16 +13,26 @@
   background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
 }
 
-/* 日间主题 */
+/* 日间主题变量 */
 .container {
-  --card-bg: rgba(255, 255, 255, 0.8);
-  --text-color: #000;
+  --text-primary: #000;          /* 主要文字颜色 */
+  --text-secondary: #666;        /* 次要文字颜色 */
+  --border-color: #000;          /* 边框颜色 */
+  --card-bg: rgba(255, 255, 255, 0.8);  /* 卡片背景 */
+  --button-bg: rgba(0, 0, 0, 0.1);      /* 按钮背景 */
+  --button-hover: rgba(0, 0, 0, 0.2);    /* 按钮悬停背景 */
+  --input-bg: rgba(0, 0, 0, 0.05);       /* 输入框背景 */
 }
 
-/* 夜间主题 */
+/* 夜间主题变量 */
 .containerDark {
+  --text-primary: #fff;
+  --text-secondary: #ccc;
+  --border-color: #fff;
   --card-bg: rgba(0, 0, 0, 0.8);
-  --text-color: #fff;
+  --button-bg: rgba(255, 255, 255, 0.1);
+  --button-hover: rgba(255, 255, 255, 0.2);
+  --input-bg: rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
 }
 
@@ -38,10 +48,6 @@
   z-index: 50;
 }
 
-.headerDark {
-  background: rgba(0, 0, 0, 0.2);
-}
-
 .headerContent {
   max-width: 1200px;
   margin: 0 auto;
@@ -52,6 +58,7 @@
   align-items: center;
 }
 
+/* Logo区域 */
 .logo {
   display: flex;
   align-items: center;
@@ -61,9 +68,10 @@
 .title {
   font-size: 20px;
   font-weight: bold;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
+/* 导航按钮 */
 .nav {
   display: flex;
   align-items: center;
@@ -73,8 +81,8 @@
 .button {
   padding: 8px 16px;
   border-radius: 8px;
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  background: var(--button-bg);
   transition: all 0.2s;
   font-size: 14px;
   display: flex;
@@ -83,7 +91,7 @@
 }
 
 .button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--button-hover);
 }
 
 .buttonRed {
@@ -111,7 +119,7 @@
 }
 
 .dropZone {
-  border: 3px dashed rgba(255, 255, 255, 0.3);
+  border: 3px dashed var(--border-color);
   border-radius: 12px;
   padding: 48px;
   text-align: center;
@@ -125,14 +133,15 @@
 }
 
 .dropZone:hover {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--text-primary);
 }
 
+/* 上传图标 */
 .uploadIcon {
   width: 48px;
   height: 48px;
   margin: 0 auto 16px;
-  border: 2px solid white;
+  border: 2px solid var(--text-primary);
   border-radius: 50%;
   position: relative;
 }
@@ -143,97 +152,27 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
+  color: var(--text-primary);
   font-size: 24px;
 }
 
 .uploadText {
-  color: var(--text-color);
+  color: var(--text-primary);
   font-size: 16px;
 }
 
+/* 上传状态 */
 .uploadingState {
-  color: white;
-  font-size: 16px;
+  text-align: center;
+  color: var(--text-primary);
 }
 
-/* 预览区域 */
-.previewArea {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  padding: 32px;
-}
-
-.previewGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  width: 100%;
-}
-
-.previewCard {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.imagePreview {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.imagePreview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.urlGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.urlItem {
-  display: flex;
-  gap: 8px;
-}
-
-.urlInput {
-  flex: 1;
-  background: var(--card-bg);
-  border-radius: 6px;
-  padding: 6px 12px;
-  color: var(--text-color);
-  font-size: 12px;
-  border: none;
-}
-
-.copyButton {
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: rgba(96, 165, 250, 0.2);
-  color: white;
-  font-size: 12px;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-
-.copyButton:hover {
-  background: rgba(96, 165, 250, 0.3);
-} 
-
+/* 进度条 */
 .progressBar {
   width: 100%;
   max-width: 300px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--input-bg);
   border-radius: 3px;
   margin: 12px auto;
   overflow: hidden;
@@ -246,11 +185,78 @@
   transition: width 0.3s ease;
 }
 
-.uploadingState {
-  text-align: center;
+/* 预览区域 */
+.previewArea {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 32px;
 }
 
-.uploadingState p {
-  color: var(--text-color);
-  margin-bottom: 8px;
+/* 预览网格 */
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+/* 预览卡片 */
+.previewCard {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.imagePreview {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* URL组 */
+.urlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.urlItem {
+  display: flex;
+  gap: 8px;
+}
+
+.urlInput {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.copyButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--button-bg);
+  color: var(--text-primary);
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background 0.2s;
+  border: 1px solid var(--border-color);
+}
+
+.copyButton:hover {
+  background: var(--button-hover);
 } 
