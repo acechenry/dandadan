@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Image, { ImageLoaderProps } from 'next/image'
+import Image from 'next/image'
 import styles from './home.module.css'
 
 // 网站标题和图标配置
@@ -11,7 +11,7 @@ const SITE_CONFIG = {
   favicon: "/favicon.ico"
 }
 
-// 定义上传文件类型
+// 保持原有的接口定义...
 interface UploadedFile {
   originalName: string
   fileName: string
@@ -24,42 +24,16 @@ interface UploadedFile {
   uploadTime: string
 }
 
-// 定义上传响应类型
-interface UploadResponse {
-  success: boolean
-  files?: UploadedFile[]
-  message?: string
-  error?: string
-}
-
-// 添加自定义图片加载器
-const imageLoader = ({ src }: ImageLoaderProps) => {
-  return src
-}
-
 export default function HomePage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
-  const [images, setImages] = useState<UploadedFile[]>([])
+  const [currentImages, setCurrentImages] = useState<UploadedFile[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  // 主题切换
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light')
-  }
-
-  ///////////// 加载已上传的图片
-  useEffect(() => {
-    fetch('/api/images')
-      .then(res => res.json())
-      .then(data => setImages(data))
-      .catch(err => console.error('Failed to load images:', err))
-  }, [])
-
-  //// 处理拖拽事件//
+  // 处理拖拽事件
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -70,7 +44,7 @@ export default function HomePage() {
     }
   }
 
-  // 处理文件拖放//
+  // 处理文件拖放
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -82,7 +56,7 @@ export default function HomePage() {
     }
   }
 
-  // 处理文件拖放//
+  // 处理文件选择
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
@@ -90,22 +64,11 @@ export default function HomePage() {
     }
   }
 
-  // 处理文件处理和自动上传//////////////////////////////////////////////
+  // 处理文件上传
   const handleUpload = async (files: File[]) => {
     setIsUploading(true)
     
     try {
-      // 添加文件类型和大小检查
-      for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-          throw new Error(`文件 ${file.name} 不是图片格式`)
-        }
-        // 假设最大限制为 5MB
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`文件 ${file.name} 超���5MB限制`)
-        }
-      }
-
       const formData = new FormData()
       files.forEach(file => {
         formData.append('files', file)
@@ -116,21 +79,21 @@ export default function HomePage() {
         body: formData
       })
 
-      const data = await res.json()
-      
       if (!res.ok) {
-        throw new Error(data.message || '上传失败')
+        throw new Error('上传失败')
       }
 
-      setImages(prev => [...data.files, ...prev])
+      const data = await res.json()
+      setCurrentImages(prev => [...data.files, ...prev])
     } catch (error) {
       console.error('Upload error:', error)
-      alert(error instanceof Error ? error.message : '上传失败，请重试')
+      alert('上传失败，请重试')
     } finally {
       setIsUploading(false)
     }
   }
 
+  // 复制到剪贴板
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text)
       .then(() => {
@@ -140,6 +103,7 @@ export default function HomePage() {
       .catch(err => console.error('Failed to copy:', err))
   }
 
+  // 格式化文件大小
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B'
     const k = 1024
@@ -148,41 +112,10 @@ export default function HomePage() {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
   }
 
-  ///////////// 处理登出
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'same-origin'
-      })
-      window.location.href = '/login'
-    } catch (error) {
-      console.error('登出失败:', error)
-    }
-  }
-
-  // 添加删除图片功能
-  const handleDeleteImage = async (fileName: string) => {
-    try {
-      const res = await fetch(`/api/images/${fileName}`, {
-        method: 'DELETE',
-      })
-      
-      if (!res.ok) {
-        throw new Error('删除失败')
-      }
-      
-      setImages(prev => prev.filter(img => img.fileName !== fileName))
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('删除失败，请重试')
-    }
-  }
-
   return (
-    <div className={`${styles.container} ${theme === 'light' ? styles.containerLight : styles.containerDark}`}>
+    <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
-      <header className={`${styles.header} ${theme === 'dark' ? styles.headerDark : ''}`}>
+      <header className={`${styles.header} ${isDarkMode ? styles.headerDark : ''}`}>
         <div className={styles.headerContent}>
           <div className={styles.logo}>
             <Image 
@@ -191,20 +124,17 @@ export default function HomePage() {
               width={32} 
               height={32} 
               className="rounded"
-              loader={imageLoader}
-              unoptimized
             />
             <h1 className={styles.title}>{SITE_CONFIG.title}</h1>
           </div>
           
           <nav className={styles.nav}>
             <button className={styles.button}>
-              <span className={styles.uploadIcon}></span>
-              <span>上传图片</span>
+              上传图片
             </button>
             
             <button className={styles.button}>
-              <span>图片管理</span>
+              图片管理
             </button>
             
             <button
@@ -214,14 +144,14 @@ export default function HomePage() {
               }}
               className={`${styles.button} ${styles.buttonRed}`}
             >
-              <span>退出登录</span>
+              退出登录
             </button>
             
             <button
-              onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+              onClick={() => setIsDarkMode(!isDarkMode)}
               className={styles.button}
             >
-              {theme === 'light' ? '🌙' : '☀️'}
+              {isDarkMode ? '☀️' : '🌙'}
             </button>
           </nav>
         </div>
@@ -253,58 +183,50 @@ export default function HomePage() {
               </div>
             ) : (
               <>
-                <div className={styles.uploadIcon}></div>
+                <div className={styles.uploadIcon} />
                 <p className={styles.uploadText}>点击或拖拽图片到这里上传</p>
               </>
             )}
           </div>
         </div>
 
-        {/* 图片预览网格 */}
-        {images.length > 0 && (
-          <div className={styles.imageGrid}>
-            {images.map((image, index) => (
-              <div key={image.fileName} className={styles.imageCard}>
-                <div className={styles.imagePreview}>
-                  <Image
-                    src={image.url}
-                    alt={image.originalName}
-                    width={300}
-                    height={300}
-                    loader={imageLoader}
-                    unoptimized
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className={styles.imageInfo}>
-                  <div className={styles.imageHeader}>
-                    <h3 className={styles.imageName}>{image.originalName}</h3>
-                    <span className={styles.imageSize}>
-                      {formatFileSize(image.size)}
-                    </span>
+        {/* 预览区域 */}
+        {currentImages.length > 0 && (
+          <div className={styles.previewArea}>
+            <div className={styles.previewGrid}>
+              {currentImages.map((image, index) => (
+                <div key={image.fileName} className={styles.previewCard}>
+                  <div className={styles.imagePreview}>
+                    <img
+                      src={image.url}
+                      alt={image.originalName}
+                    />
                   </div>
-                  {['url', 'markdown', 'bbcode'].map((type) => (
-                    <div key={type} className={styles.copyGroup}>
-                      <input
-                        type="text"
-                        value={image[type as keyof UploadedFile]}
-                        readOnly
-                        className={styles.copyInput}
-                      />
-                      <button
-                        onClick={() => copyToClipboard(image[type as keyof UploadedFile] as string, index)}
-                        className={styles.copyButton}
-                      >
-                        {copiedIndex === index ? '已复制' : '复制'}
-                      </button>
-                    </div>
-                  ))}
-                  <div className={styles.uploadTime}>
-                    上传时间：{new Date(image.uploadTime).toLocaleString()}
+                  <div className={styles.urlGroup}>
+                    {[
+                      { label: '直链', value: image.url },
+                      { label: 'Markdown', value: image.markdown },
+                      { label: 'BBCode', value: image.bbcode }
+                    ].map(({ label, value }) => (
+                      <div key={label} className={styles.urlItem}>
+                        <input
+                          type="text"
+                          value={value}
+                          readOnly
+                          className={styles.urlInput}
+                        />
+                        <button
+                          onClick={() => copyToClipboard(value, index)}
+                          className={styles.copyButton}
+                        >
+                          {copiedIndex === index ? '已复制' : '复制'}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </main>
