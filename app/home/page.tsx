@@ -84,11 +84,16 @@ export default function HomePage() {
         formData.append('files', file)
       })
 
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
-        signal: AbortSignal.timeout(60000)
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
 
       if (!res.ok) {
         throw new Error('上传失败')
@@ -97,10 +102,14 @@ export default function HomePage() {
       const data = await res.json()
       setCurrentImages(prev => [...data.files, ...prev])
       setUploadProgress(100)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Upload error:', error)
-      if (error.name === 'TimeoutError') {
-        alert('上传超时，请重试或减少文件数量')
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          alert('上传超时，请重试或减少文件数量')
+        } else {
+          alert(error.message || '上传失败，请重试')
+        }
       } else {
         alert('上传失败，请重试')
       }
