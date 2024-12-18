@@ -5,12 +5,10 @@ const nextConfig = {
     domains: ['imgurl.chenry.eu.org'],
     unoptimized: true,
   },
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-    responseLimit: '50mb',
+  experimental: {
+    serverComponentsExternalPackages: ['sharp'],
   },
+  // Vercel 的文件大小限制应该在项目设置中配置，而不是在 next.config.mjs 中
 }
 
-export default nextConfig 
+export default nextConfig
