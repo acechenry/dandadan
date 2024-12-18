@@ -1,10 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import Image, { ImageLoaderProps } from 'next/image'
+import styles from './home.module.css'
 
-interface ImageFile {
+// 网站标题和图标配置
+const SITE_CONFIG = {
+  title: "图床服务",
+  favicon: "/favicon.ico"
+}
+
+// 定义上传文件类型
+interface UploadedFile {
   originalName: string
   fileName: string
   url: string
@@ -16,12 +24,34 @@ interface ImageFile {
   uploadTime: string
 }
 
-export default function ManagePage() {
-  const [images, setImages] = useState<ImageFile[]>([])
-  const [selectedImage, setSelectedImage] = useState<ImageFile | null>(null)
-  const [copiedText, setCopiedText] = useState<string>('')
+// 定义上传响应类型
+interface UploadResponse {
+  success: boolean
+  files?: UploadedFile[]
+  message?: string
+  error?: string
+}
+
+// 添加自定义图片加载器
+const imageLoader = ({ src }: ImageLoaderProps) => {
+  return src
+}
+
+export default function HomePage() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [isUploading, setIsUploading] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
+  const [images, setImages] = useState<UploadedFile[]>([])
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
+  // 主题切换
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light')
+  }
+
+  ///////////// 加载已上传的图片
   useEffect(() => {
     fetch('/api/images')
       .then(res => res.json())
@@ -29,11 +59,83 @@ export default function ManagePage() {
       .catch(err => console.error('Failed to load images:', err))
   }, [])
 
-  const handleCopy = (text: string, type: string) => {
+  //// 处理拖拽事件//
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  // 处理文件拖放//
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      await handleUpload(files)
+    }
+  }
+
+  // 处理文件拖放//
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      await handleUpload(files)
+    }
+  }
+
+  // 处理文件处理和自动上传//////////////////////////////////////////////
+  const handleUpload = async (files: File[]) => {
+    setIsUploading(true)
+    
+    try {
+      // 添加文件类型和大小检查
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          throw new Error(`文件 ${file.name} 不是图片格式`)
+        }
+        // 假设最大限制为 5MB
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error(`文件 ${file.name} 超���5MB限制`)
+        }
+      }
+
+      const formData = new FormData()
+      files.forEach(file => {
+        formData.append('files', file)
+      })
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await res.json()
+      
+      if (!res.ok) {
+        throw new Error(data.message || '上传失败')
+      }
+
+      setImages(prev => [...data.files, ...prev])
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert(error instanceof Error ? error.message : '上传失败，请重试')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text)
       .then(() => {
-        setCopiedText(type)
-        setTimeout(() => setCopiedText(''), 2000)
+        setCopiedIndex(index)
+        setTimeout(() => setCopiedIndex(null), 2000)
       })
       .catch(err => console.error('Failed to copy:', err))
   }
@@ -46,169 +148,166 @@ export default function ManagePage() {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
   }
 
-  const handleDelete = async (fileName: string) => {
-    if (!confirm('确定要删除这张图片吗？')) {
-      return
+  ///////////// 处理登出
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'same-origin'
+      })
+      window.location.href = '/login'
+    } catch (error) {
+      console.error('登出失败:', error)
     }
+  }
 
+  // 添加删除图片功能
+  const handleDeleteImage = async (fileName: string) => {
     try {
       const res = await fetch(`/api/images/${fileName}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
-
-      if (res.ok) {
-        setImages(prev => prev.filter(img => img.fileName !== fileName))
-        setSelectedImage(null)
-      } else {
-        alert('删除失败')
+      
+      if (!res.ok) {
+        throw new Error('删除失败')
       }
+      
+      setImages(prev => prev.filter(img => img.fileName !== fileName))
     } catch (error) {
       console.error('Delete error:', error)
-      alert('删除失败')
+      alert('删除失败，请重试')
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-yellow-500">图片管理</h1>
-          <div className="space-x-4">
-            <button
-              onClick={() => router.push('/home')}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors"
-            >
-              返回上传
+    <div className={`${styles.container} ${theme === 'light' ? styles.containerLight : styles.containerDark}`}>
+      {/* 顶栏 */}
+      <header className={`${styles.header} ${theme === 'dark' ? styles.headerDark : ''}`}>
+        <div className={styles.headerContent}>
+          <div className={styles.logo}>
+            <Image 
+              src={SITE_CONFIG.favicon} 
+              alt="Logo" 
+              width={32} 
+              height={32} 
+              className="rounded"
+              loader={imageLoader}
+              unoptimized
+            />
+            <h1 className={styles.title}>{SITE_CONFIG.title}</h1>
+          </div>
+          
+          <nav className={styles.nav}>
+            <button className={styles.button}>
+              <span className={styles.uploadIcon}></span>
+              <span>上传图片</span>
             </button>
+            
+            <button className={styles.button}>
+              <span>图片管理</span>
+            </button>
+            
             <button
               onClick={() => {
                 fetch('/api/logout', { method: 'POST' })
                   .then(() => window.location.href = '/login')
               }}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors"
+              className={`${styles.button} ${styles.buttonRed}`}
             >
-              退出登录
+              <span>退出登录</span>
             </button>
-          </div>
-        </header>
+            
+            <button
+              onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+              className={styles.button}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+          </nav>
+        </div>
+      </header>
 
-        <main>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {images.map(image => (
-              <div
-                key={image.fileName}
-                className="group relative aspect-square rounded-lg overflow-hidden bg-gray-800 cursor-pointer
-                         hover:ring-2 hover:ring-yellow-500 transition-all"
-                onClick={() => setSelectedImage(image)}
-              >
-                <Image
-                  src={image.url}
-                  alt={image.originalName}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/75 text-sm
-                             transform translate-y-full group-hover:translate-y-0 transition-transform">
-                  <p className="truncate">{image.originalName}</p>
-                  <p className="text-gray-400 text-xs">{formatFileSize(image.size)}</p>
+      {/* 主内容区 */}
+      <main className={styles.main}>
+        {/* 上传区域 */}
+        <div className={styles.uploadArea}>
+          <div
+            className={`${styles.dropZone} ${dragActive ? styles.dropZoneActive : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            {isUploading ? (
+              <div className={styles.uploadingState}>
+                <p>上传中...</p>
+              </div>
+            ) : (
+              <>
+                <div className={styles.uploadIcon}></div>
+                <p className={styles.uploadText}>点击或拖拽图片到这里上传</p>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* 图片预览网格 */}
+        {images.length > 0 && (
+          <div className={styles.imageGrid}>
+            {images.map((image, index) => (
+              <div key={image.fileName} className={styles.imageCard}>
+                <div className={styles.imagePreview}>
+                  <Image
+                    src={image.url}
+                    alt={image.originalName}
+                    width={300}
+                    height={300}
+                    loader={imageLoader}
+                    unoptimized
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className={styles.imageInfo}>
+                  <div className={styles.imageHeader}>
+                    <h3 className={styles.imageName}>{image.originalName}</h3>
+                    <span className={styles.imageSize}>
+                      {formatFileSize(image.size)}
+                    </span>
+                  </div>
+                  {['url', 'markdown', 'bbcode'].map((type) => (
+                    <div key={type} className={styles.copyGroup}>
+                      <input
+                        type="text"
+                        value={image[type as keyof UploadedFile]}
+                        readOnly
+                        className={styles.copyInput}
+                      />
+                      <button
+                        onClick={() => copyToClipboard(image[type as keyof UploadedFile] as string, index)}
+                        className={styles.copyButton}
+                      >
+                        {copiedIndex === index ? '已复制' : '复制'}
+                      </button>
+                    </div>
+                  ))}
+                  <div className={styles.uploadTime}>
+                    上传时间：{new Date(image.uploadTime).toLocaleString()}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </main>
-      </div>
-
-      {/* 图片详情弹窗 */}
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg max-w-3xl w-full mx-4 relative">
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-700 rounded-full transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* 图片预览 */}
-              <div className="flex-shrink-0 relative w-full md:w-96 aspect-square rounded-lg overflow-hidden bg-gray-900">
-                <Image
-                  src={selectedImage.url}
-                  alt={selectedImage.originalName}
-                  fill
-                  className="object-contain"
-                />
-              </div>
-
-              {/* 图片信息 */}
-              <div className="flex-grow space-y-4">
-                <h3 className="text-lg font-medium text-yellow-500">
-                  {selectedImage.originalName}
-                </h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">直链</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={selectedImage.url}
-                        readOnly
-                        className="flex-grow bg-gray-900 rounded px-3 py-2 text-sm"
-                      />
-                      <button
-                        onClick={() => handleCopy(selectedImage.url, 'url')}
-                        className="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 rounded text-sm transition-colors"
-                      >
-                        {copiedText === 'url' ? '已复制' : '复制'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">Markdown</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={selectedImage.markdown}
-                        readOnly
-                        className="flex-grow bg-gray-900 rounded px-3 py-2 text-sm"
-                      />
-                      <button
-                        onClick={() => handleCopy(selectedImage.markdown, 'markdown')}
-                        className="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 rounded text-sm transition-colors"
-                      >
-                        {copiedText === 'markdown' ? '已复制' : '复制'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 space-y-2">
-                    <p className="text-sm text-gray-400">
-                      大小：{formatFileSize(selectedImage.size)}
-                    </p>
-                    <p className="text-sm text-gray-400">
-                      上传时间：{new Date(selectedImage.uploadTime).toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="pt-4">
-                    <button
-                      onClick={() => handleDelete(selectedImage.fileName)}
-                      className="w-full px-4 py-2 bg-red-600 hover:bg-red-500 rounded transition-colors"
-                    >
-                      删除图片
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   )
-} 
+}
