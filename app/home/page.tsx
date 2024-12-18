@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'     //
 import styles from './home.module.css'    //
+import { VirtualList } from 'react-tiny-virtual-list'
 
 // 网站标题
 const SITE_TITLE = "图床服务"
@@ -46,6 +47,7 @@ export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
 
   ///////////// 加载已上传的图片
   useEffect(() => {
@@ -91,6 +93,17 @@ export default function HomePage() {
     setIsUploading(true)
     
     try {
+      // 添加文件类型和大小检查
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          throw new Error(`文件 ${file.name} 不是图片格式`)
+        }
+        // 假设最大限制为 5MB
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error(`文件 ${file.name} 超过5MB限制`)
+        }
+      }
+
       const formData = new FormData()
       files.forEach(file => {
         formData.append('files', file)
@@ -101,18 +114,16 @@ export default function HomePage() {
         body: formData
       })
 
+      const data = await res.json()
+      
       if (!res.ok) {
-        throw new Error('上传失败')
+        throw new Error(data.message || '上传失败')
       }
 
-      const data = await res.json()
-      console.log('Upload success:', data)
-      
-      // 添加新上传的图片到列表
       setImages(prev => [...data.files, ...prev])
     } catch (error) {
       console.error('Upload error:', error)
-      alert('上传失败，请重试')
+      alert(error instanceof Error ? error.message : '上传失败，请重试')
     } finally {
       setIsUploading(false)
     }
@@ -148,6 +159,31 @@ export default function HomePage() {
     }
   }
 
+  // 使用 useMemo 优化列表渲染
+  const sortedImages = useMemo(() => {
+    return [...images].sort((a, b) => 
+      new Date(b.uploadTime).getTime() - new Date(a.uploadTime).getTime()
+    )
+  }, [images])
+
+  // 添加删除图片功能
+  const handleDeleteImage = async (fileName: string) => {
+    try {
+      const res = await fetch(`/api/images/${fileName}`, {
+        method: 'DELETE',
+      })
+      
+      if (!res.ok) {
+        throw new Error('删除失败')
+      }
+      
+      setImages(prev => prev.filter(img => img.fileName !== fileName))
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('删除失败，请重试')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-6xl mx-auto">
@@ -180,6 +216,19 @@ export default function HomePage() {
               onClick={() => fileInputRef.current?.click()}
               style={{ cursor: 'pointer' }}
             >
+              {isUploading ? (
+                <div className="space-y-2">
+                  <p className="text-gray-400">上传中...</p>
+                  <div className="w-full bg-gray-700 rounded-full h-2.5">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-400">点击或拖拽图片到这里上传</p>
+              )}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -188,9 +237,6 @@ export default function HomePage() {
                 accept="image/*"
                 className="hidden"
               />
-              <p className="text-gray-400">
-                {isUploading ? '上传中...' : '点击或拖拽图片到这里上传'}
-              </p>
             </div>
           </div>
 
@@ -198,7 +244,7 @@ export default function HomePage() {
             <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
               <h2 className="text-xl mb-4">已上传的图片</h2>
               <div className="space-y-4">
-                {images.map((image, index) => (
+                {sortedImages.map((image, index) => (
                   <div key={image.fileName} className="bg-gray-700 p-4 rounded-lg">
                     <div className="flex items-start gap-4">
                       <div className="w-24 h-24 flex-shrink-0">
@@ -248,6 +294,12 @@ export default function HomePage() {
                         <div className="text-sm text-gray-400">
                           上传时间：{new Date(image.uploadTime).toLocaleString()}
                         </div>
+                        <button
+                          onClick={() => handleDeleteImage(image.fileName)}
+                          className="px-2 py-1 bg-red-600 rounded text-sm hover:bg-red-700"
+                        >
+                          删除
+                        </button>
                       </div>
                     </div>
                   </div>
