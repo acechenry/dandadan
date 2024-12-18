@@ -40,7 +40,7 @@ function getPublicUrl(fileName: string) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   console.log('Upload request received')
   
   const cookieStore = cookies()
@@ -54,9 +54,20 @@ export async function POST(req: Request) {
   }
 
   try {
-    const formData = await req.formData()
-    const files = formData.getAll('files')
-    
+    const formData = await request.formData()
+    const files = formData.getAll('files') as File[]
+
+    // 检查文件大小
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        return new Response(
+          JSON.stringify({ error: `文件 ${file.name} 超过10MB限制` }), 
+          { status: 400 }
+        )
+      }
+    }
+
     console.log('Files received:', files.length)
     
     if (!files || files.length === 0) {
