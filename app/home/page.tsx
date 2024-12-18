@@ -11,7 +11,7 @@ const SITE_CONFIG = {
   favicon: "/favicon.ico"
 }
 
-// 保持原有的接口定义...
+// 定义上传文件类型
 interface UploadedFile {
   originalName: string
   fileName: string
@@ -24,12 +24,21 @@ interface UploadedFile {
   uploadTime: string
 }
 
+// 定义上传响应类型
+interface UploadResponse {
+  success: boolean
+  files?: UploadedFile[]
+  message?: string
+  error?: string
+}
+
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [currentImages, setCurrentImages] = useState<UploadedFile[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -67,6 +76,7 @@ export default function HomePage() {
   // 处理文件上传
   const handleUpload = async (files: File[]) => {
     setIsUploading(true)
+    setUploadProgress(0)
     
     try {
       const formData = new FormData()
@@ -76,7 +86,8 @@ export default function HomePage() {
 
       const res = await fetch('/api/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: AbortSignal.timeout(30000)
       })
 
       if (!res.ok) {
@@ -85,11 +96,17 @@ export default function HomePage() {
 
       const data = await res.json()
       setCurrentImages(prev => [...data.files, ...prev])
+      setUploadProgress(100)
     } catch (error) {
       console.error('Upload error:', error)
-      alert('上传失败，请重试')
+      if (error.name === 'TimeoutError') {
+        alert('上传超时，请重试或减少文件数量')
+      } else {
+        alert('上传失败，请重试')
+      }
     } finally {
       setIsUploading(false)
+      setTimeout(() => setUploadProgress(0), 1000)
     }
   }
 
@@ -180,6 +197,12 @@ export default function HomePage() {
             {isUploading ? (
               <div className={styles.uploadingState}>
                 <p>上传中...</p>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={styles.progressFill}
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
               </div>
             ) : (
               <>
