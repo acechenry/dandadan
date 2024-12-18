@@ -80,42 +80,67 @@ export default function HomePage() {
     
     try {
       const formData = new FormData()
-      files.forEach(file => {
-        formData.append('files', file)
+      const totalSize = files.reduce((acc, file) => acc + file.size, 0)
+      let uploadedSize = 0
+
+      // 创建 XMLHttpRequest 来跟踪上传进度
+      const xhr = new XMLHttpRequest()
+      
+      // 处理上传进度
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100)
+          setUploadProgress(progress)
+        }
       })
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal
+      // 创建 Promise 包装 XHR
+      const uploadPromise = new Promise((resolve, reject) => {
+        xhr.open('POST', '/api/upload')
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText))
+          } else {
+            reject(new Error('上传失败'))
+          }
+        }
+        
+        xhr.onerror = () => reject(new Error('网络错误'))
+        
+        // 添加文件到 FormData
+        files.forEach(file => {
+          formData.append('files', file)
+        })
+        
+        // 发送请求
+        xhr.send(formData)
       })
 
-      clearTimeout(timeoutId)
+      // 设置超时控制
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('上传超时')), 30000)
+      })
 
-      if (!res.ok) {
-        throw new Error('上传失败')
-      }
-
-      const data = await res.json()
-      setCurrentImages(prev => [...data.files, ...prev])
+      // 等待上传完成或超时
+      const data = await Promise.race([uploadPromise, timeoutPromise])
+      
+      // 更新预览
+      setCurrentImages(prev => [...(data as any).files, ...prev])
       setUploadProgress(100)
     } catch (error: unknown) {
       console.error('Upload error:', error)
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          alert('上传超时，请重试或减少文件数量')
-        } else {
-          alert(error.message || '上传失败，请重试')
-        }
+        alert(error.message || '上传失败，请重试')
       } else {
         alert('上传失败，请重试')
       }
     } finally {
-      setIsUploading(false)
-      setTimeout(() => setUploadProgress(0), 1000)
+      // 延迟重置上传状态，让用户看到100%的进度
+      setTimeout(() => {
+        setIsUploading(false)
+        setUploadProgress(0)
+      }, 500)
     }
   }
 
