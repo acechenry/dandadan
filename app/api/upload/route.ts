@@ -40,15 +40,21 @@ function getPublicUrl(fileName: string) {
   }
 }
 
+export const config = {
+  api: {
+    bodyParser: false, // 禁用默认的 body 解析
+    responseLimit: false, // 禁用响应大小限制
+  },
+}
+
 export async function POST(request: Request) {
   console.log('Upload request received')
   
   const cookieStore = cookies()
   const auth = cookieStore.get('auth')
   if (!auth) {
-    console.log('Authentication failed')
-    return NextResponse.json(
-      { success: false, message: '未登录' },
+    return new Response(
+      JSON.stringify({ success: false, message: '未登录' }),
       { status: 401 }
     )
   }
@@ -56,13 +62,13 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
-
+    
     // 检查文件大小
-    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
         return new Response(
-          JSON.stringify({ error: `文件 ${file.name} 超过10MB限制` }), 
+          JSON.stringify({ error: `文件 ${file.name} 超过50MB限制` }), 
           { status: 400 }
         )
       }
@@ -152,20 +158,13 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error('Upload error:', error instanceof Error ? error.message : error)
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: '上传失败',
-          error: error.message,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        },
-        { status: 500 }
-      )
-    }
-    return NextResponse.json(
-      { success: false, message: '上传失败' },
+    console.error('Upload error:', error)
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        message: '上传失败',
+        error: error instanceof Error ? error.message : '未知错误'
+      }),
       { status: 500 }
     )
   }
