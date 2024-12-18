@@ -5,26 +5,25 @@
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-  transition: background-color 0.3s;
-}
-
-.containerDark {
-  background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
 }
 
 /* 日间主题 */
-.container[data-theme='day'] {
-  --component-bg: rgba(255, 255, 255, 0.5);
+.container {
+  --card-bg: rgba(255, 255, 255, 0.8);
   --text-color: #000;
-  --highlight-color: #3B82F6;
 }
 
 /* 夜间主题 */
-.container[data-theme='night'] {
-  --component-bg: rgba(0, 0, 0, 0.5);
+.containerDark {
+  --card-bg: rgba(0, 0, 0, 0.8);
   --text-color: #fff;
-  --highlight-color: #eab308;
+  background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
 }
 
 /* 顶栏样式 */
@@ -35,7 +34,7 @@
   right: 0;
   height: 64px;
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   z-index: 50;
 }
 
@@ -62,7 +61,7 @@
 .title {
   font-size: 20px;
   font-weight: bold;
-  color: white;
+  color: var(--text-color);
 }
 
 .nav {
@@ -104,7 +103,7 @@
 
 /* 上传区域 */
 .uploadArea {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   border-radius: 16px;
   padding: 32px;
@@ -149,7 +148,7 @@
 }
 
 .uploadText {
-  color: white;
+  color: var(--text-color);
   font-size: 16px;
 }
 
@@ -160,7 +159,7 @@
 
 /* 预览区域 */
 .previewArea {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   border-radius: 16px;
   padding: 32px;
@@ -174,7 +173,7 @@
 }
 
 .previewCard {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -208,10 +207,10 @@
 
 .urlInput {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
   border-radius: 6px;
   padding: 6px 12px;
-  color: white;
+  color: var(--text-color);
   font-size: 12px;
   border: none;
 }
@@ -228,4 +227,30 @@
 
 .copyButton:hover {
   background: rgba(96, 165, 250, 0.3);
+} 
+
+.progressBar {
+  width: 100%;
+  max-width: 300px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: 12px auto;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #60A5FA;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.uploadingState {
+  text-align: center;
+}
+
+.uploadingState p {
+  color: var(--text-color);
+  margin-bottom: 8px;
 } 
