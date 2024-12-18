@@ -40,12 +40,9 @@ function getPublicUrl(fileName: string) {
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: false, // 禁用默认的 body 解析
-    responseLimit: false, // 禁用响应大小限制
-  },
-}
+export const runtime = 'edge' // 'nodejs' (default) | 'edge'
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60 // 设置最大执行时间为60秒
 
 export async function POST(request: Request) {
   console.log('Upload request received')
