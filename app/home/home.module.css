@@ -15,13 +15,17 @@
 
 /* 日间主题变量 */
 .container {
-  --text-primary: #000;          /* 主要文字颜色 */
-  --text-secondary: #666;        /* 次要文字颜色 */
-  --border-color: #000;          /* 边框颜色 */
-  --card-bg: rgba(255, 255, 255, 0.8);  /* 卡片背景 */
-  --button-bg: rgba(0, 0, 0, 0.1);      /* 按钮背景 */
-  --button-hover: rgba(0, 0, 0, 0.2);    /* 按钮悬停背景 */
-  --input-bg: rgba(0, 0, 0, 0.05);       /* 输入框背景 */
+  --text-primary: #000;
+  --text-secondary: #666;
+  --border-color: #000;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --button-bg: rgba(0, 0, 0, 0.1);
+  --button-hover: rgba(0, 0, 0, 0.2);
+  --input-bg: rgba(0, 0, 0, 0.05);
+  --highlight-button-bg: #3B82F6;
+  --highlight-button-text: #fff;
+  --highlight-button-border: transparent;
+  --normal-button-border: rgba(0, 0, 0, 0.1);
 }
 
 /* 夜间主题变量 */
@@ -30,9 +34,13 @@
   --text-secondary: #ccc;
   --border-color: #fff;
   --card-bg: rgba(0, 0, 0, 0.8);
-  --button-bg: rgba(255, 255, 255, 0.1);
-  --button-hover: rgba(255, 255, 255, 0.2);
+  --button-bg: rgba(0, 0, 0, 0.5);
+  --button-hover: rgba(0, 0, 0, 0.7);
   --input-bg: rgba(255, 255, 255, 0.1);
+  --highlight-button-bg: rgba(0, 0, 0, 0.5);
+  --highlight-button-text: #eab308;
+  --highlight-button-border: rgba(234, 179, 8, 0.3);
+  --normal-button-border: rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
 }
 
@@ -42,7 +50,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: 72px;
   backdrop-filter: blur(12px);
   background: var(--card-bg);
   z-index: 50;
@@ -62,12 +70,12 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .title {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 24px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -75,27 +83,40 @@
 .nav {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .button {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 8px;
   color: var(--text-primary);
   background: var(--button-bg);
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
+  border: 1px solid var(--normal-button-border);
+}
+
+.button:first-child {
+  background: var(--highlight-button-bg);
+  color: var(--highlight-button-text);
+  font-size: 20px;
+  font-weight: 700;
+  border: 2px solid var(--highlight-button-border);
+  box-shadow: 0 0 10px var(--highlight-button-border);
 }
 
 .button:hover {
   background: var(--button-hover);
+  transform: translateY(-1px);
 }
 
 .buttonRed {
   background: rgba(239, 68, 68, 0.2);
+  border-color: transparent;
 }
 
 .buttonRed:hover {
@@ -159,6 +180,7 @@
 .uploadText {
   color: var(--text-primary);
   font-size: 16px;
+  font-weight: 600;
 }
 
 /* 上传状态 */
@@ -244,19 +266,22 @@
   padding: 6px 12px;
   color: var(--text-primary);
   font-size: 12px;
+  font-weight: 600;
 }
 
 .copyButton {
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
-  background: var(--button-bg);
-  color: var(--text-primary);
-  font-size: 12px;
+  background: var(--highlight-button-bg);
+  color: var(--highlight-button-text);
+  font-size: 20px;
+  font-weight: 700;
   white-space: nowrap;
-  transition: background 0.2s;
-  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+  border: none;
 }
 
 .copyButton:hover {
   background: var(--button-hover);
+  transform: translateY(-1px);
 } 
