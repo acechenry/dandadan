@@ -17,7 +17,7 @@
 .container {
   --text-primary: #000;
   --text-secondary: #666;
-  --border-color: #000;
+  --border-color: #3B82F6;
   --card-bg: rgba(255, 255, 255, 0.8);
   --button-bg: rgba(0, 0, 0, 0.1);
   --button-hover: rgba(0, 0, 0, 0.2);
@@ -26,13 +26,14 @@
   --highlight-button-text: #fff;
   --highlight-button-border: transparent;
   --normal-button-border: rgba(0, 0, 0, 0.1);
+  --upload-icon-color: #3B82F6;
 }
 
 /* 夜间主题变量 */
 .containerDark {
-  --text-primary: #fff;
+  --text-primary: #eab308;
   --text-secondary: #ccc;
-  --border-color: #fff;
+  --border-color: #eab308;
   --card-bg: rgba(0, 0, 0, 0.8);
   --button-bg: rgba(0, 0, 0, 0.5);
   --button-hover: rgba(0, 0, 0, 0.7);
@@ -41,6 +42,7 @@
   --highlight-button-text: #eab308;
   --highlight-button-border: rgba(234, 179, 8, 0.3);
   --normal-button-border: rgba(255, 255, 255, 0.1);
+  --upload-icon-color: #eab308;
   background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
 }
 
@@ -152,12 +154,12 @@
 }
 
 .dropZoneActive {
-  border-color: #60A5FA;
+  border-color: var(--border-color);
   background: rgba(96, 165, 250, 0.1);
 }
 
 .dropZone:hover {
-  border-color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 /* 上传图标 */
@@ -165,19 +167,21 @@
   width: 48px;
   height: 48px;
   margin: 0 auto 16px;
-  border: 2px solid var(--text-primary);
+  border: 2px solid var(--upload-icon-color);
   border-radius: 50%;
   position: relative;
 }
 
 .uploadIcon::before {
-  content: '↑';
+  content: '+';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--text-primary);
-  font-size: 24px;
+  color: var(--upload-icon-color);
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1;
 }
 
 .uploadText {
@@ -288,4 +292,22 @@
 .copyButton:hover {
   background: var(--button-hover);
   transform: translateY(-1px);
+}
+
+/* 预览卡片 - 夜间主题特殊处理 */
+.containerDark .previewCard {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 10px var(--highlight-button-border);
+}
+
+/* 复制按钮 - 夜间主题特殊处理 */
+.containerDark .copyButton {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 5px var(--highlight-button-border);
+}
+
+/* 图片预览边框 - 夜间主题特殊处理 */
+.containerDark .imagePreview {
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 5px var(--highlight-button-border);
 } 
