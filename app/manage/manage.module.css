@@ -91,12 +91,15 @@
   margin-bottom: 24px;
 }
 
+/* 顶部控制栏 */
 .controlBar {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
+/* 左侧按钮组 */
 .selectionButtons {
   display: flex;
   gap: 12px;
@@ -113,8 +116,35 @@
 
 .deleteSelectedButton {
   padding: 8px 16px;
+  margin-left: 12px;
   border-radius: 4px;
   background: #ef4444;
+  color: white;
+  font-size: 12px;
+  border: none;
+}
+
+/* 右侧搜索框 */
+.searchGroup {
+  display: flex;
+  gap: 8px;
+  max-width: 300px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.searchButton {
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: var(--blue-primary);
   color: white;
   font-size: 12px;
   border: none;
@@ -175,7 +205,7 @@
   display: flex;
   flex-direction: column;
   height: auto;
-  min-height: 280px;
+  min-height: 320px;
 }
 
 .imageCard:hover {
@@ -199,9 +229,10 @@
 
 .imageInfo {
   flex: 1;
-  padding: 8px 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 /* 按钮样式 */
@@ -318,37 +349,41 @@
 }
 
 .fileName {
-  color: var(--text-primary);
   font-weight: 600;
   font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 70%;
 }
 
-.detailsRow {
+.detailsGroup {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--text-secondary);
   font-size: 12px;
-  margin-bottom: 12px;
 }
 
-.renameGroup {
+.checkboxGroup {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.renameInput {
-  flex: 1;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 12px;
+.imageCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 /* 按钮悬停效果 */
