@@ -244,60 +244,84 @@ export default function ManagePage() {
 
       {/* 主内容区 */}
       <main className={styles.main}>
-        {/* 搜索栏 */}
-        <div className={styles.searchBar}>
-          <input
-            type="text"
-            placeholder="搜索图片..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          <button className={styles.searchButton}>
-            搜索
-          </button>
-        </div>
-
         {/* 总体预览模块 */}
         <div className={styles.previewArea}>
           <div className={styles.controlBar}>
+            {/* 左侧选择按钮组 */}
             <div className={styles.selectionButtons}>
               <button onClick={selectAll} className={styles.selectButton}>
                 全选
               </button>
               <button onClick={deselectAll} className={styles.selectButton}>
-                取消全选
+                不选
+              </button>
+              <button 
+                onClick={() => {
+                  const allFileNames = images.map(img => img.fileName)
+                  const newSelected = new Set(
+                    allFileNames.filter(fileName => !selectedImages.has(fileName))
+                  )
+                  setSelectedImages(newSelected)
+                }} 
+                className={styles.selectButton}
+              >
+                反选
+              </button>
+              {selectedImages.size > 0 && (
+                <button onClick={deleteSelected} className={styles.deleteSelectedButton}>
+                  删除选中 ({selectedImages.size})
+                </button>
+              )}
+            </div>
+
+            {/* 右侧搜索框 */}
+            <div className={styles.searchGroup}>
+              <input
+                type="text"
+                placeholder="搜索图片..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+              <button className={styles.searchButton}>
+                搜索
               </button>
             </div>
-            {selectedImages.size > 0 && (
-              <button onClick={deleteSelected} className={styles.deleteSelectedButton}>
-                删除选中 ({selectedImages.size})
-              </button>
-            )}
           </div>
 
           {/* 图片网格 */}
           <div className={styles.imageGrid}>
             {filteredImages.map((image, index) => (
               <div key={image.fileName} className={styles.imageCard}>
-                <input
-                  type="checkbox"
-                  checked={selectedImages.has(image.fileName)}
-                  onChange={() => toggleSelect(image.fileName)}
-                  className={styles.imageCheckbox}
-                />
                 <div className={styles.imagePreview}>
                   <img src={image.url} alt={image.originalName} />
                 </div>
                 <div className={styles.imageInfo}>
-                  <div className={styles.fileName}>{image.originalName}</div>
-                  <div className={styles.detailsRow}>
-                    <span>{formatDate(image.uploadTime)}</span>
-                    <span>{formatFileSize(image.size)}</span>
+                  <div className={styles.checkboxGroup}>
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.has(image.fileName)}
+                      onChange={() => toggleSelect(image.fileName)}
+                      className={styles.imageCheckbox}
+                    />
+                    <div className={styles.fileName}>{image.originalName}</div>
+                  </div>
+                  <div className={styles.detailsGroup}>
+                    <div className={styles.detailItem}>
+                      <span>上传时间：</span>
+                      <span>{formatDate(image.uploadTime)}</span>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>文件大小：</span>
+                      <span>{formatFileSize(image.size)}</span>
+                    </div>
                     {imageDimensions[image.fileName] && (
-                      <span className={styles.imageDimensions}>
-                        {imageDimensions[image.fileName].width}x{imageDimensions[image.fileName].height}
-                      </span>
+                      <div className={styles.detailItem}>
+                        <span>图片尺寸：</span>
+                        <span>
+                          {imageDimensions[image.fileName].width}x{imageDimensions[image.fileName].height}
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className={styles.buttonGroup}>
