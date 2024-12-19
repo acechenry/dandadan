@@ -30,10 +30,12 @@ export async function processImage(file: File): Promise<File> {
 
     // 尝试 WebP 转换
     try {
+      // 检查浏览器环境和 API 支持
       if (IMAGE_PROCESSING_OPTIONS.useWebP && 
           typeof window !== 'undefined' && 
           'createImageBitmap' in window &&
-          HTMLCanvasElement.prototype.toBlob) {
+          typeof HTMLCanvasElement !== 'undefined' &&
+          HTMLCanvasElement.prototype?.toBlob) {
         const bitmap = await createImageBitmap(processedFile)
         const canvas = document.createElement('canvas')
         canvas.width = bitmap.width
