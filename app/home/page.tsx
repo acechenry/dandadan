@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import imageCompression from 'browser-image-compression'
 import styles from './home.module.css'
+import { processFiles } from '@/utils/imageProcessor'
 
 // 网站标题和图标配置
 const SITE_CONFIG = {
@@ -28,6 +30,18 @@ interface UploadedFile {
 // 将超时时间提取为常量
 const UPLOAD_TIMEOUT = 30000 // 30 seconds
 
+// 添加图片处理配置
+const IMAGE_PROCESSING_OPTIONS = {
+  maxSizeMB: 1,              // 最大文件大小
+  maxWidthOrHeight: 1920,    // 最大宽度/高度
+  useWebP: true,             // 使用WebP格式
+  initialQuality: 0.8,       // 初始压缩质量
+  preserveExif: false,       // 不保留EXIF数据
+}
+
+// 添加批处理配置
+const BATCH_SIZE = 3  // 每批处理图片数量
+
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -38,6 +52,7 @@ export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [processProgress, setProcessProgress] = useState(0)
 
   // 初始化主题
   useEffect(() => {
@@ -88,20 +103,72 @@ export default function HomePage() {
     }
   }
 
-  // 处理文件上传
+  // 添加图片���理函数
+  const processImage = async (file: File): Promise<File> => {
+    try {
+      // 压缩图片
+      const compressedFile = await imageCompression(file, IMAGE_PROCESSING_OPTIONS)
+
+      // 如果支持且启用WebP转换
+      if (IMAGE_PROCESSING_OPTIONS.useWebP && window.createImageBitmap) {
+        const bitmap = await createImageBitmap(compressedFile)
+        const canvas = document.createElement('canvas')
+        canvas.width = bitmap.width
+        canvas.height = bitmap.height
+        
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Failed to get canvas context')
+        
+        ctx.drawImage(bitmap, 0, 0)
+        
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/webp', 0.8)
+        })
+
+        return new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
+          type: 'image/webp'
+        })
+      }
+
+      return compressedFile
+    } catch (error) {
+      console.warn('Image processing failed:', error)
+      return file  // 处理失败时返回原文件
+    }
+  }
+
+  // 修改文件处理函数
+  const processFiles = async (files: File[]): Promise<File[]> => {
+    const results: File[] = []
+    let processed = 0
+
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      const batch = files.slice(i, i + BATCH_SIZE)
+      const processedBatch = await Promise.all(
+        batch.map(file => processImage(file))
+      )
+      results.push(...processedBatch)
+      
+      processed += batch.length
+      setProcessProgress(Math.round((processed / files.length) * 100))
+    }
+
+    return results
+  }
+
+  // 修改上传处理函数
   const handleUpload = async (files: File[]) => {
     setIsUploading(true)
     setUploadProgress(0)
+    setProcessProgress(0)
     
     try {
+      // 使用工具函数处理图片
+      const processedFiles = await processFiles(files, setProcessProgress)
+      
       const formData = new FormData()
-      const totalSize = files.reduce((acc, file) => acc + file.size, 0)
-      let uploadedSize = 0
-
-      // 创建 XMLHttpRequest 来跟踪上传进度
       const xhr = new XMLHttpRequest()
       
-      // 处理上传进度
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100)
@@ -111,7 +178,6 @@ export default function HomePage() {
         }
       })
 
-      // 创建 Promise 包装 XHR
       const uploadPromise = new Promise((resolve, reject) => {
         xhr.open('POST', '/api/upload')
         
@@ -125,24 +191,19 @@ export default function HomePage() {
         
         xhr.onerror = () => reject(new Error('网络错误'))
         
-        // 添加文件到 FormData
-        files.forEach(file => {
+        processedFiles.forEach(file => {
           formData.append('files', file)
         })
         
-        // 发送请求
         xhr.send(formData)
       })
 
-      // 设置超时控制
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('上传超时')), UPLOAD_TIMEOUT)
+        setTimeout(() => reject(new Error('上传超时')), 30000)
       })
 
-      // 等待上传完成或超时
       const data = await Promise.race([uploadPromise, timeoutPromise])
       
-      // 更新预览
       setCurrentImages(prev => [...(data as any).files, ...prev])
       setUploadProgress(100)
     } catch (error: unknown) {
@@ -155,10 +216,10 @@ export default function HomePage() {
         alert('上传失败，请重试')
       }
     } finally {
-      // 延迟重置上传状态，让用户看到100%的进度
       setTimeout(() => {
         setIsUploading(false)
         setUploadProgress(0)
+        setProcessProgress(0)
       }, 500)
     }
   }
@@ -276,11 +337,13 @@ export default function HomePage() {
             />
             {isUploading ? (
               <div className={styles.uploadingState}>
-                <p>上传中...</p>
+                <p>{processProgress < 100 ? '处理中...' : '上传中...'}</p>
                 <div className={styles.progressBar}>
                   <div 
                     className={styles.progressFill}
-                    style={{ width: `${uploadProgress}%` }}
+                    style={{ 
+                      width: `${processProgress < 100 ? processProgress : uploadProgress}%` 
+                    }}
                   />
                 </div>
               </div>
