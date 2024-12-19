@@ -1,16 +1,3 @@
-/* 共用变量 */
-:root {
-  --blue-primary: #3B82F6;
-  --blue-secondary: #2563EB;
-  --yellow-primary: #eab308;
-  --white: #fff;
-  --black: #000;
-  --button-padding-base: 12px 24px;
-  --button-padding-large: 14px 32px;
-  --button-font-base: 16px;
-  --button-font-large: 20px;
-}
-
 /* 容器基础样式 */
 .container {
   min-height: 100vh;
@@ -23,11 +10,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-secondary) 100%);
-}
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
 
-/* 日间主题变量 */
-.container {
+  /* 共用变量 - 移到 container 中 */
+  --blue-primary: #3B82F6;
+  --blue-secondary: #2563EB;
+  --yellow-primary: #eab308;
+  --white: #fff;
+  --black: #000;
+  --button-padding-base: 12px 24px;
+  --button-padding-large: 14px 32px;
+  --button-font-base: 16px;
+  --button-font-large: 20px;
+
+  /* 日间主题变量 */
   --text-primary: var(--black);
   --text-secondary: #666;
   --border-color: var(--blue-primary);
@@ -303,7 +299,7 @@
   transform: translateY(-1px);
 }
 
-/* 预览卡片 - 夜间主题特殊处理 */
+/* 预览卡�� - 夜间主题特殊处理 */
 .containerDark .previewCard {
   border: 1px solid var(--border-color);
   box-shadow: 0 0 10px var(--highlight-button-border);
@@ -332,4 +328,3 @@
 .containerDark .urlInput {
   color: var(--text-secondary);
 }
- 
