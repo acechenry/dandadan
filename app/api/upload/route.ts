@@ -156,12 +156,8 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('Upload error:', error)
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: '上传失败',
-        error: error instanceof Error ? error.message : '未知错误'
-      }),
+    return NextResponse.json(
+      { success: false, message: '上传失败', error: error instanceof Error ? error.message : '未知错误' },
       { status: 500 }
     )
   }
