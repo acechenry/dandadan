@@ -36,9 +36,8 @@ export default function ManagePage() {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
   const router = useRouter()
-  const [isNavigating, setIsNavigating] = useState(false)
 
-  // 初始化主题
+  // 初始��主题
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark') {
@@ -194,14 +193,6 @@ export default function ManagePage() {
     }
   }
 
-  const handleNavigate = () => {
-    if (isNavigating) return
-    setIsNavigating(true)
-    router.push('/').finally(() => {
-      setIsNavigating(false)
-    })
-  }
-
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -262,7 +253,7 @@ export default function ManagePage() {
             {/* 左侧选择按钮组 */}
             <div className={styles.selectionButtons}>
               <button onClick={selectAll} className={styles.selectButton}>
-                全���
+                全选
               </button>
               <button onClick={deselectAll} className={styles.selectButton}>
                 不选
