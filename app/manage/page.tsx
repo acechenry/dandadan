@@ -262,7 +262,7 @@ export default function ManagePage() {
             {/* 左侧选择按钮组 */}
             <div className={styles.selectionButtons}>
               <button onClick={selectAll} className={styles.selectButton}>
-                全选
+                全���
               </button>
               <button onClick={deselectAll} className={styles.selectButton}>
                 不选
