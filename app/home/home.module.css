@@ -306,14 +306,16 @@
   box-shadow: 0 0 10px var(--preview-border-color);
 }
 
-/* 复制按钮 - 夜间主题特殊处理 */
-.containerDark .copyButton {
+.containerDark .previewCard .imagePreview {
   border: 1px solid var(--preview-border-color);
   box-shadow: 0 0 5px var(--preview-border-color);
 }
 
-/* 图片预览边框 - 夜间主题特殊处理 */
-.containerDark .imagePreview {
+.containerDark .previewCard .urlInput {
+  border-color: var(--preview-border-color);
+}
+
+.containerDark .previewCard .copyButton {
   border: 1px solid var(--preview-border-color);
   box-shadow: 0 0 5px var(--preview-border-color);
 }
@@ -331,7 +333,6 @@
 
 /* 预览区域 - 夜间主题特殊处理 */
 .containerDark .previewArea {
-  border: 1px solid var(--preview-border-color);
-  box-shadow: 0 0 15px var(--preview-border-color);
+  /* 移除这个样式，保持默认的蓝色边框 */
 }
  
