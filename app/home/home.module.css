@@ -32,11 +32,11 @@
 /* 夜间主题变量 */
 .containerDark {
   --text-primary: #eab308;
-  --text-secondary: #ccc;
+  --text-secondary: #fff;
   --border-color: #eab308;
   --card-bg: rgba(0, 0, 0, 0.8);
-  --button-bg: rgba(0, 0, 0, 0.5);
-  --button-hover: rgba(0, 0, 0, 0.7);
+  --button-bg: transparent;
+  --button-hover: rgba(0, 0, 0, 0.3);
   --input-bg: rgba(255, 255, 255, 0.1);
   --highlight-button-bg: rgba(0, 0, 0, 0.5);
   --highlight-button-text: #eab308;
@@ -90,7 +90,7 @@
 
 /* 导航按钮基础样式 */
 .button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 8px;
   color: var(--text-primary);
   background: var(--button-bg);
@@ -111,7 +111,7 @@
   font-weight: 700;
   border: 2px solid var(--highlight-button-border);
   box-shadow: 0 0 10px var(--highlight-button-border);
-  padding: 10px 24px;
+  padding: 14px 28px;
 }
 
 .button:hover {
@@ -310,4 +310,16 @@
 .containerDark .imagePreview {
   border: 1px solid var(--border-color);
   box-shadow: 0 0 5px var(--highlight-button-border);
-} 
+}
+
+/* 夜间主题下的标题和普通按钮文字颜色 */
+.containerDark .title,
+.containerDark .button:not(:first-child) {
+  color: var(--text-secondary);
+}
+
+/* 夜间主题下的链接输入框文字颜色 */
+.containerDark .urlInput {
+  color: var(--text-secondary);
+}
+ 
