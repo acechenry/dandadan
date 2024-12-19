@@ -41,6 +41,25 @@ export default function HomePage() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // 初始化主题
+  useEffect(() => {
+    // 从 localStorage 获取主题设置
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true)
+    }
+  }, [])
+
+  // 主题切换
+  const toggleTheme = () => {
+    setIsDarkMode(prev => {
+      const newTheme = !prev
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+      return newTheme
+    })
+  }
 
   // 处理拖拽事件
   const handleDrag = (e: React.DragEvent) => {
@@ -133,7 +152,7 @@ export default function HomePage() {
       if (error instanceof Error) {
         alert(error.message || '上传失败，请重试')
       } else {
-        alert('上传失败，���重试')
+        alert('上传失败，请重试')
       }
     } finally {
       // 延迟重置上传状态，让用户看到100%的进度
@@ -163,6 +182,34 @@ export default function HomePage() {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
   }
 
+  // 修改退出登录按钮的处理函数
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    
+    try {
+      const res = await fetch('/api/logout', { 
+        method: 'POST',
+        credentials: 'include'
+      })
+      if (res.ok) {
+        router.push('/login')
+      } else {
+        throw new Error('登出失败')
+      }
+    } catch (error) {
+      console.error('登出错误:', error)
+      alert('登出失败，请重试')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
+  // 添加跳转函数
+  const handleManageClick = () => {
+    router.push('/manage')
+  }
+
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -184,22 +231,23 @@ export default function HomePage() {
               上传图片
             </button>
             
-            <button className={styles.button}>
+            <button 
+              onClick={handleManageClick}
+              className={styles.button}
+            >
               图片管理
             </button>
             
             <button
-              onClick={() => {
-                fetch('/api/logout', { method: 'POST' })
-                  .then(() => window.location.href = '/login')
-              }}
+              onClick={handleLogout}
+              disabled={isLoggingOut}
               className={`${styles.button} ${styles.buttonRed}`}
             >
-              退出登录
+              {isLoggingOut ? '退出中...' : '退出登录'}
             </button>
             
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={toggleTheme}
               className={styles.button}
             >
               {isDarkMode ? '☀️' : '🌙'}
