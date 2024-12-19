@@ -495,21 +495,28 @@
   bottom: 12px;
   z-index: 2;
   background: var(--card-bg);
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 勾选框样式 */
 .imageCheckbox {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   margin: 0;
+  accent-color: var(--blue-primary);
+  transform: scale(1.2);
 }
 
 /* 夜间主题特殊处理 */
 .containerDark .checkboxContainer {
   border-color: var(--preview-border-color);
-  box-shadow: 0 0 5px var(--preview-border-color);
+  box-shadow: 0 0 8px var(--preview-border-color);
+}
+
+.containerDark .imageCheckbox {
+  accent-color: var(--yellow-primary);
 } 
