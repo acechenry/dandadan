@@ -85,6 +85,10 @@
   overflow: hidden;
   border: 1px solid var(--border-color);
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 280px;
 }
 
 .imageCard:hover {
@@ -96,6 +100,8 @@
   aspect-ratio: 1;
   position: relative;
   overflow: hidden;
+  height: 160px;
+  min-height: 160px;
 }
 
 .imagePreview img {
@@ -105,46 +111,49 @@
 }
 
 .imageInfo {
-  padding: 12px;
+  flex: 1;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 按钮样式 */
 .buttonGroup {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.deleteButton,
+.renameButton,
+.saveButton,
+.copyButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .deleteButton {
   background: #ef4444;
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
 }
 
 .renameButton {
   background: white;
   color: black;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
 }
 
 .saveButton {
   background: #22c55e;
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
 }
 
 .copyButton {
   background: var(--blue-primary);
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
 }
 
 /* 继承 home.module.css 的顶栏样式 */
