@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 
-export async function POST(req: Request) {
+interface LoginRequest {
+  password: string
+}
+
+export async function POST(request: NextRequest) {
   console.log('Login API called')
   
   try {
-    const data = await req.json()
+    const data = await request.json()
     const receivedPassword = data.password
     const expectedPassword = process.env.ACCESS_PASSWORD
     
