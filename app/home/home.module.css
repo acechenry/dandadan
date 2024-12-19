@@ -18,10 +18,10 @@
   --yellow-primary: #eab308;
   --white: #fff;
   --black: #000;
-  --button-padding-base: 12px 24px;
-  --button-padding-large: 14px 32px;
+  --button-padding-base: 10px 20px;
+  --button-padding-large: 12px 26px;
   --button-font-base: 16px;
-  --button-font-large: 20px;
+  --button-font-large: 18px;
 
   /* 日间主题变量 */
   --text-primary: var(--black);
@@ -49,6 +49,7 @@
   --highlight-button-text: var(--black);
   --highlight-button-border: rgba(234, 179, 8, 0.3);
   --upload-icon-color: var(--blue-primary);
+  --preview-border-color: var(--yellow-primary);
 }
 
 /* 顶栏样式 */
@@ -299,23 +300,22 @@
   transform: translateY(-1px);
 }
 
-/* 预览卡�� - 夜间主题特殊处理 */
+/* 预览卡 - 夜间主题特殊处理 */
 .containerDark .previewCard {
-  border: 1px solid var(--border-color);
-  box-shadow: 0 0 10px var(--highlight-button-border);
+  border: 1px solid var(--preview-border-color);
+  box-shadow: 0 0 10px var(--preview-border-color);
 }
 
 /* 复制按钮 - 夜间主题特殊处理 */
 .containerDark .copyButton {
-  border: 1px solid var(--border-color);
-  box-shadow: 0 0 5px var(--highlight-button-border);
+  border: 1px solid var(--preview-border-color);
+  box-shadow: 0 0 5px var(--preview-border-color);
 }
 
 /* 图片预览边框 - 夜间主题特殊处理 */
 .containerDark .imagePreview {
-  border: 1px solid var(--border-color);
-  background: var(--highlight-button-bg);
-  box-shadow: 0 0 5px var(--highlight-button-border);
+  border: 1px solid var(--preview-border-color);
+  box-shadow: 0 0 5px var(--preview-border-color);
 }
 
 /* 夜间主题下的标题和普通按钮文字颜色 */
@@ -328,3 +328,10 @@
 .containerDark .urlInput {
   color: var(--text-secondary);
 }
+
+/* 预览区域 - 夜间主题特殊处理 */
+.containerDark .previewArea {
+  border: 1px solid var(--preview-border-color);
+  box-shadow: 0 0 15px var(--preview-border-color);
+}
+ 
