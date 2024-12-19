@@ -1,0 +1,302 @@
+/* 继承 home.module.css 的基础样式 */
+.container {
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+
+  /* 共用变量 */
+  --blue-primary: #3B82F6;
+  --blue-secondary: #2563EB;
+  --yellow-primary: #eab308;
+  --white: #fff;
+  --black: #000;
+  --button-padding-base: 10px 20px;
+  --button-padding-large: 12px 26px;
+  --button-font-base: 16px;
+  --button-font-large: 18px;
+
+  /* 日间主题变量 */
+  --text-primary: var(--black);
+  --text-secondary: #666;
+  --border-color: var(--blue-primary);
+  --card-bg: rgba(255, 255, 255, 1);
+  --button-hover: var(--blue-primary);
+  --input-bg: rgba(0, 0, 0, 0.05);
+  --highlight-button-bg: var(--blue-primary);
+  --highlight-button-text: var(--white);
+  --highlight-button-border: transparent;
+  --upload-icon-color: var(--blue-primary);
+}
+
+/* 夜间主题变量 */
+.containerDark {
+  --text-primary: var(--white);
+  --text-secondary: var(--white);
+  --border-color: var(--blue-primary);
+  --card-bg: rgba(0, 0, 0, 0.7);
+  --button-bg: transparent;
+  --button-hover: var(--yellow-primary);
+  --input-bg: rgba(255, 255, 255, 0.1);
+  --highlight-button-bg: var(--yellow-primary);
+  --highlight-button-text: var(--black);
+  --highlight-button-border: rgba(234, 179, 8, 0.3);
+  --upload-icon-color: var(--blue-primary);
+  --preview-border-color: var(--yellow-primary);
+}
+
+/* 搜索栏 */
+.searchBar {
+  padding: 20px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: var(--button-font-base);
+}
+
+/* 图片网格 */
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+/* 图片卡片 */
+.imageCard {
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.imageCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.imagePreview {
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageInfo {
+  padding: 12px;
+}
+
+/* 按钮样式 */
+.buttonGroup {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.deleteButton {
+  background: #ef4444;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.renameButton {
+  background: white;
+  color: black;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.saveButton {
+  background: #22c55e;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.copyButton {
+  background: var(--blue-primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* 继承 home.module.css 的顶栏样式 */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  backdrop-filter: blur(12px);
+  background: var(--card-bg);
+  z-index: 50;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.button {
+  padding: var(--button-padding-base);
+  border-radius: 8px;
+  color: var(--text-primary);
+  background: var(--button-bg);
+  transition: all 0.2s;
+  font-size: var(--button-font-base);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+}
+
+.button:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+/* 主内容区域 */
+.main {
+  padding: 88px 24px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 图片信息样式 */
+.nameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fileName {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
+
+.detailsRow {
+  display: flex;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.renameGroup {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.renameInput {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+/* 按钮悬停效果 */
+.deleteButton:hover,
+.renameButton:hover,
+.saveButton:hover,
+.copyButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* 夜间主题特殊处理 */
+.containerDark .imageCard {
+  border-color: var(--preview-border-color);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.1);
+}
+
+.containerDark .renameButton {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--preview-border-color);
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .imageGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .imageGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .imageGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+} 
