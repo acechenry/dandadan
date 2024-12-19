@@ -74,8 +74,6 @@ export default function ManagePage() {
 
   // 删除图片
   const handleDelete = async (fileName: string) => {
-    if (!confirm('确定要删除这张图片吗？')) return
-
     try {
       const res = await fetch(`/api/images/${fileName}`, {
         method: 'DELETE'
@@ -176,17 +174,21 @@ export default function ManagePage() {
     setSelectedImages(new Set())
   }
 
+  // 批量删除
   const deleteSelected = async () => {
     if (!selectedImages.size) return
     if (!confirm(`确定要删除选中的 ${selectedImages.size} 张图片吗？`)) return
 
     try {
-      await Promise.all(
-        Array.from(selectedImages).map(fileName => handleDelete(fileName))
+      const promises = Array.from(selectedImages).map(fileName =>
+        fetch(`/api/images/${fileName}`, { method: 'DELETE' })
       )
+      await Promise.all(promises)
+      await fetchImages() // 重新加载图片列表
       setSelectedImages(new Set())
     } catch (error) {
       console.error('Failed to delete some images:', error)
+      alert('部分图片删除失败')
     }
   }
 
@@ -297,15 +299,7 @@ export default function ManagePage() {
                   <img src={image.url} alt={image.originalName} />
                 </div>
                 <div className={styles.imageInfo}>
-                  <div className={styles.checkboxGroup}>
-                    <input
-                      type="checkbox"
-                      checked={selectedImages.has(image.fileName)}
-                      onChange={() => toggleSelect(image.fileName)}
-                      className={styles.imageCheckbox}
-                    />
-                    <div className={styles.fileName}>{image.originalName}</div>
-                  </div>
+                  <div className={styles.fileName}>{image.originalName}</div>
                   <div className={styles.detailsGroup}>
                     <div className={styles.detailItem}>
                       <span>上传时间：</span>
@@ -343,6 +337,12 @@ export default function ManagePage() {
                     >
                       {copiedIndex === index ? '已复制' : 'BB'}
                     </button>
+                    <input
+                      type="checkbox"
+                      checked={selectedImages.has(image.fileName)}
+                      onChange={() => toggleSelect(image.fileName)}
+                      className={styles.imageCheckbox}
+                    />
                   </div>
                 </div>
               </div>
