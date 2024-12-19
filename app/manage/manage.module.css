@@ -406,8 +406,8 @@
   }
   
   .imageCheckbox {
-    width: 24px;
-    height: 24px;
+    width: 15px;
+    height: 14px;
     cursor: pointer;
     margin: 0;
     -webkit-appearance: none;
@@ -416,6 +416,7 @@
     border: 2px solid var(--border-color);
     border-radius: 4px;
     transition: all 0.2s;
+    outline: none;
   }
   
   .imageCheckbox:checked {
@@ -452,4 +453,26 @@
     border: 2px solid var(--highlight-button-border);
     box-shadow: 0 0 10px var(--highlight-button-border);
   } 
+  
+  /* 勾选框样式 */
+  .imageCheckbox {
+    width: 15px;
+    height: 14px;
+    cursor: pointer;
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: white;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    transition: all 0.2s;
+    outline: none;
+  }
+  
+  /* 如果想在focus时有自定义样式，可以添加这个 */
+  .imageCheckbox:focus {
+    outline: none;
+    /* 可以添加自定义的focus样式，比如: */
+    /* box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); */
+  }
   
