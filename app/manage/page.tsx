@@ -81,7 +81,7 @@ export default function ManagePage() {
         method: 'DELETE'
       })
       if (!res.ok) throw new Error('删除失败')
-      await fetchImages() // 重新加载图片��表
+      await fetchImages() // 重新加载图片列表
     } catch (error) {
       console.error('Delete error:', error)
       alert('删除失败')
@@ -136,7 +136,7 @@ export default function ManagePage() {
 
   // 获取图片尺寸
   const getImageDimensions = (url: string, fileName: string) => {
-    const img = new Image()
+    const img = new window.Image()
     img.onload = () => {
       setImageDimensions(prev => ({
         ...prev,
@@ -148,11 +148,13 @@ export default function ManagePage() {
 
   // 加载图片时获取尺寸
   useEffect(() => {
-    images.forEach(image => {
-      if (!imageDimensions[image.fileName]) {
-        getImageDimensions(image.url, image.fileName)
-      }
-    })
+    if (typeof window !== 'undefined') {
+      images.forEach(image => {
+        if (!imageDimensions[image.fileName]) {
+          getImageDimensions(image.url, image.fileName)
+        }
+      })
+    }
   }, [images])
 
   // 选择处理函数
