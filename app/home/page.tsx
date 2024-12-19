@@ -133,7 +133,7 @@ export default function HomePage() {
       if (error instanceof Error) {
         alert(error.message || '上传失败，请重试')
       } else {
-        alert('上传失败，请重试')
+        alert('上传失败，���重试')
       }
     } finally {
       // 延迟重置上传状态，让用户看到100%的进度
@@ -266,6 +266,7 @@ export default function HomePage() {
                       { label: 'BBCode', value: image.bbcode }
                     ].map(({ label, value }) => (
                       <div key={label} className={styles.urlItem}>
+                        <span className={styles.urlLabel}>{label}</span>
                         <input
                           type="text"
                           value={value}
