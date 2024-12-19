@@ -25,13 +25,8 @@ interface UploadedFile {
   uploadTime: string
 }
 
-// 定义上传响应类型
-interface UploadResponse {
-  success: boolean
-  files?: UploadedFile[]
-  message?: string
-  error?: string
-}
+// 将超时时间提取为常量
+const UPLOAD_TIMEOUT = 30000 // 30 seconds
 
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -110,7 +105,9 @@ export default function HomePage() {
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100)
-          setUploadProgress(progress)
+          if (progress !== uploadProgress) {
+            setUploadProgress(progress)
+          }
         }
       })
 
@@ -139,7 +136,7 @@ export default function HomePage() {
 
       // 设置超时控制
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('上传超时')), 30000)
+        setTimeout(() => reject(new Error('上传超时')), UPLOAD_TIMEOUT)
       })
 
       // 等待上传完成或超时
@@ -149,7 +146,9 @@ export default function HomePage() {
       setCurrentImages(prev => [...(data as any).files, ...prev])
       setUploadProgress(100)
     } catch (error: unknown) {
-      console.error('Upload error:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Upload error:', error)
+      }
       if (error instanceof Error) {
         alert(error.message || '上传失败，请重试')
       } else {
@@ -171,7 +170,7 @@ export default function HomePage() {
         setCopiedIndex(index)
         setTimeout(() => setCopiedIndex(null), 2000)
       })
-      .catch(err => console.error('Failed to copy:', err))
+      .catch(() => {})
   }
 
   // 格式化文件大小
@@ -180,7 +179,8 @@ export default function HomePage() {
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+    const size = (bytes / Math.pow(k, i)).toFixed(2)
+    return `${size} ${sizes[i]}`
   }
 
   // 修改退出登录按钮的处理函数
@@ -199,16 +199,13 @@ export default function HomePage() {
         throw new Error('登出失败')
       }
     } catch (error) {
-      console.error('登出错误:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Logout error:', error)
+      }
       alert('登出失败，请重试')
     } finally {
       setIsLoggingOut(false)
     }
-  }
-
-  // 添加跳转函数
-  const handleManageClick = () => {
-    router.push('/manage')
   }
 
   return (
@@ -240,13 +237,11 @@ export default function HomePage() {
             </Link>
             
             <button
-              onClick={() => {
-                fetch('/api/logout', { method: 'POST' })
-                  .then(() => router.push('/login'))
-              }}
+              onClick={handleLogout}
               className={styles.button}
+              disabled={isLoggingOut}
             >
-              退出登录
+              {isLoggingOut ? '退出中...' : '退出登录'}
             </button>
             
             <button
