@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import styles from './manage.module.css'
+import Link from 'next/link'
 
 // 网站标题和图标配置
 const SITE_CONFIG = {
@@ -35,6 +36,7 @@ export default function ManagePage() {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
   const router = useRouter()
+  const [isNavigating, setIsNavigating] = useState(false)
 
   // 初始化主题
   useEffect(() => {
@@ -192,6 +194,14 @@ export default function ManagePage() {
     }
   }
 
+  const handleNavigate = () => {
+    if (isNavigating) return
+    setIsNavigating(true)
+    router.push('/').finally(() => {
+      setIsNavigating(false)
+    })
+  }
+
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -209,12 +219,12 @@ export default function ManagePage() {
           </div>
           
           <nav className={styles.nav}>
-            <button 
-              onClick={() => router.push('/')}
+            <Link 
+              href="/home"
               className={styles.button}
             >
               上传图片
-            </button>
+            </Link>
             
             <button className={`${styles.button} ${styles.highlight}`}>
               图片管理
