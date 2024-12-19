@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import type { FormEvent, ChangeEvent } from 'react'
 
 // 背景图片URL，修改此处可更换背景
 const BG_URL = ''
@@ -14,7 +15,7 @@ export default function LoginPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const router = useRouter()
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     
     if (!password) {
@@ -38,7 +39,7 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok && data?.success) {
-        window.location.href = '/home'
+        router.push('/home')
         return
       } else {
         setError(data?.message || '密码错误')
@@ -212,7 +213,7 @@ export default function LoginPage() {
                   <input
                     type="password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                     placeholder="请输入访问密码"
                     required
                     className="input"
