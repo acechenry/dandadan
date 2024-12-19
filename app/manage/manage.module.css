@@ -169,17 +169,6 @@
   border: none;
 }
 
-/* 图片卡片选择框 */
-.imageCheckbox {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 1;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
 /* 图片尺寸信息 */
 .imageDimensions {
   color: var(--text-secondary);
@@ -382,12 +371,6 @@
   margin-bottom: 8px;
 }
 
-.imageCheckbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
 /* 按钮悬停效果 */
 .deleteButton:hover,
 .renameButton:hover,
@@ -473,10 +456,38 @@
 
 /* 勾选框样式 */
 .imageCheckbox {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  margin-left: 8px;
+  margin: 0;
+  accent-color: var(--blue-primary);
+  transform: scale(1.2);
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: white;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+}
+
+/* 添加勾选状态的样式 */
+.imageCheckbox:checked {
+  background-color: var(--blue-primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+  background-size: 18px;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-color: var(--blue-primary);
+}
+
+/* 夜间主题下的勾选框样式 */
+.containerDark .imageCheckbox {
+  background-color: var(--card-bg);
+  border-color: var(--preview-border-color);
+}
+
+.containerDark .imageCheckbox:checked {
+  background-color: var(--yellow-primary);
+  border-color: var(--yellow-primary);
 }
 
 /* 高亮按钮样式 */
