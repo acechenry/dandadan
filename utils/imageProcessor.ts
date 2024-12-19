@@ -31,13 +31,19 @@ export async function processImage(file: File): Promise<File> {
     // 尝试 WebP 转换
     try {
       // 检查浏览器环境和 API 支持
-      if (IMAGE_PROCESSING_OPTIONS.useWebP && 
-          typeof window !== 'undefined' && 
-          'createImageBitmap' in window &&
-          typeof HTMLCanvasElement !== 'undefined' &&
-          HTMLCanvasElement.prototype?.toBlob) {
-        const bitmap = await createImageBitmap(processedFile)
+      const canUseWebP = typeof window !== 'undefined' && 
+                        'createImageBitmap' in window &&
+                        typeof document !== 'undefined' &&
+                        'createElement' in document
+
+      if (IMAGE_PROCESSING_OPTIONS.useWebP && canUseWebP) {
         const canvas = document.createElement('canvas')
+        // 检查 canvas 是否支持 toBlob
+        if (!canvas.toBlob) {
+          throw new Error('Canvas toBlob not supported')
+        }
+
+        const bitmap = await createImageBitmap(processedFile)
         canvas.width = bitmap.width
         canvas.height = bitmap.height
         
