@@ -104,7 +104,7 @@ export default function HomePage() {
     setProcessProgress(0)
     
     try {
-      // 使用工具函数处理图片，传入进度回调
+      // 直接处理图片，不做大小限制
       const processedFiles = await processFiles(files, setProcessProgress)
       
       const formData = new FormData()
