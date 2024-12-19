@@ -86,6 +86,7 @@
   gap: 20px;
 }
 
+/* 导航按钮基础样式 */
 .button {
   padding: 10px 20px;
   border-radius: 8px;
@@ -97,9 +98,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--normal-button-border);
+  border: none;
 }
 
+/* 上传图片按钮特殊样式 */
 .button:first-child {
   background: var(--highlight-button-bg);
   color: var(--highlight-button-text);
@@ -107,6 +109,7 @@
   font-weight: 700;
   border: 2px solid var(--highlight-button-border);
   box-shadow: 0 0 10px var(--highlight-button-border);
+  padding: 10px 24px;
 }
 
 .button:hover {
@@ -114,13 +117,13 @@
   transform: translateY(-1px);
 }
 
+/* 移除退出登录按钮的红色背景 */
 .buttonRed {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: transparent;
+  background: var(--button-bg);
 }
 
 .buttonRed:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: var(--button-hover);
 }
 
 /* 主内容区域 */
@@ -269,13 +272,14 @@
   font-weight: 600;
 }
 
+/* 调整复制按钮样式 */
 .copyButton {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
   background: var(--highlight-button-bg);
   color: var(--highlight-button-text);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: normal;
   white-space: nowrap;
   transition: all 0.2s;
   border: none;
