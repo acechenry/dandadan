@@ -18,8 +18,10 @@ export async function processImage(file: File): Promise<File> {
     // 压缩图片
     const compressedFile = await imageCompression(file, IMAGE_PROCESSING_OPTIONS)
 
-    // 如果支持且启用WebP转换
-    if (IMAGE_PROCESSING_OPTIONS.useWebP && window.createImageBitmap) {
+    // 检查是否在浏览器环境且支持 WebP 转换
+    if (IMAGE_PROCESSING_OPTIONS.useWebP && 
+        typeof window !== 'undefined' && 
+        'createImageBitmap' in window) {
       const bitmap = await createImageBitmap(compressedFile)
       const canvas = document.createElement('canvas')
       canvas.width = bitmap.width
