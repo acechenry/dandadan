@@ -19,8 +19,7 @@
   --text-secondary: #666;
   --border-color: #3B82F6;
   --card-bg: rgba(255, 255, 255, 1);
-  //--button-bg: rgba(0, 0, 0, 0.1);
-  --button-hover: rgba(59,130,246,0.6);
+  --button-hover: rgba(59,130,246,1);
   --input-bg: rgba(0, 0, 0, 0.05);
   --highlight-button-bg: #3B82F6;
   --highlight-button-text: #fff;
@@ -34,9 +33,9 @@
   --text-primary: #eab308;
   --text-secondary: #fff;
   --border-color: #eab308;
-  --card-bg: rgba(0, 0, 0, 0.5);
+  --card-bg: rgba(0, 0, 0, 0.7);
   --button-bg: transparent;
-  --button-hover: rgba(0, 0, 0, 0.3);
+  --button-hover: rgba(234,179,8,1);
   --input-bg: rgba(255, 255, 255, 0.1);
   --highlight-button-bg: rgba(234,179,8,1);
   --highlight-button-text: #000000;
