@@ -1,3 +1,16 @@
+/* 共用变量 */
+:root {
+  --blue-primary: #3B82F6;
+  --blue-secondary: #2563EB;
+  --yellow-primary: #eab308;
+  --white: #fff;
+  --black: #000;
+  --button-padding-base: 12px 24px;
+  --button-padding-large: 14px 32px;
+  --button-font-base: 16px;
+  --button-font-large: 20px;
+}
+
 /* 容器基础样式 */
 .container {
   min-height: 100vh;
@@ -10,38 +23,36 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-secondary) 100%);
 }
 
 /* 日间主题变量 */
 .container {
-  --text-primary: #000;
+  --text-primary: var(--black);
   --text-secondary: #666;
-  --border-color: #3B82F6;
+  --border-color: var(--blue-primary);
   --card-bg: rgba(255, 255, 255, 1);
-  --button-hover: rgba(59,130,246,1);
+  --button-hover: var(--blue-primary);
   --input-bg: rgba(0, 0, 0, 0.05);
-  --highlight-button-bg: #3B82F6;
-  --highlight-button-text: #fff;
+  --highlight-button-bg: var(--blue-primary);
+  --highlight-button-text: var(--white);
   --highlight-button-border: transparent;
-  --normal-button-border: rgba(0, 0, 0, 0.1);
-  --upload-icon-color: #3B82F6;
+  --upload-icon-color: var(--blue-primary);
 }
 
 /* 夜间主题变量 */
 .containerDark {
-  --text-primary: #eab308;
-  --text-secondary: #fff;
-  --border-color: #eab308;
+  --text-primary: var(--white);
+  --text-secondary: var(--white);
+  --border-color: var(--blue-primary);
   --card-bg: rgba(0, 0, 0, 0.7);
   --button-bg: transparent;
-  --button-hover: rgba(234,179,8,1);
+  --button-hover: var(--yellow-primary);
   --input-bg: rgba(255, 255, 255, 0.1);
-  --highlight-button-bg: rgba(234,179,8,1);
-  --highlight-button-text: #000000;
+  --highlight-button-bg: var(--yellow-primary);
+  --highlight-button-text: var(--black);
   --highlight-button-border: rgba(234, 179, 8, 0.3);
-  //--normal-button-border: rgba(255, 255, 255, 0.1);
-  --upload-icon-color: #eab308;
+  --upload-icon-color: var(--blue-primary);
 }
 
 /* 顶栏样式 */
@@ -88,12 +99,12 @@
 
 /* 导航按钮基础样式 */
 .button {
-  padding: 12px 24px;
+  padding: var(--button-padding-base);
   border-radius: 8px;
   color: var(--text-primary);
   background: var(--button-bg);
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: var(--button-font-base);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -105,11 +116,11 @@
 .button:first-child {
   background: var(--highlight-button-bg);
   color: var(--highlight-button-text);
-  font-size: 20px;
+  font-size: var(--button-font-large);
   font-weight: 700;
   border: 2px solid var(--highlight-button-border);
   box-shadow: 0 0 10px var(--highlight-button-border);
-  padding: 14px 28px;
+  padding: var(--button-padding-large);
 }
 
 .button:hover {
