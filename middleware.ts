@@ -8,14 +8,6 @@ export function middleware(request: NextRequest) {
   
   // 需要保护的路由
   const protectedPaths = ['/home', '/manage']
-  
-  // 调试日志（生产环境可以移除）
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Middleware check:', {
-      path: pathname,
-      isAuthenticated,
-    })
-  }
 
   // 如果访问根路径，重定向到登录页
   if (pathname === '/') {
