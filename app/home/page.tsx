@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import styles from './home.module.css'
 
 // 网站标题和图标配置
@@ -231,19 +232,21 @@ export default function HomePage() {
               上传图片
             </button>
             
-            <button 
-              onClick={handleManageClick}
+            <Link 
+              href="/manage"
               className={styles.button}
             >
               图片管理
-            </button>
+            </Link>
             
             <button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className={`${styles.button} ${styles.buttonRed}`}
+              onClick={() => {
+                fetch('/api/logout', { method: 'POST' })
+                  .then(() => router.push('/login'))
+              }}
+              className={styles.button}
             >
-              {isLoggingOut ? '退出中...' : '退出登录'}
+              退出登录
             </button>
             
             <button
