@@ -241,6 +241,7 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  align-items: center;
 }
 
 .deleteButton,
@@ -430,4 +431,58 @@
   .imageGrid {
     grid-template-columns: repeat(1, 1fr);
   }
+} 
+
+/* 按钮组样式 */
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+/* 复制按钮基础样式 */
+.copyButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+}
+
+/* MD按钮样式 */
+.markdownButton {
+  background: #22c55e !important;
+  color: white !important;
+}
+
+/* URL按钮样式 */
+.urlButton {
+  background: var(--blue-primary) !important;
+  color: white !important;
+}
+
+/* BB按钮样式 */
+.bbcodeButton {
+  background: white !important;
+  color: black !important;
+}
+
+/* 勾选框样式 */
+.imageCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+/* 高亮按钮样式 */
+.highlight {
+  background: var(--highlight-button-bg) !important;
+  color: var(--highlight-button-text) !important;
+  font-weight: 700;
+  border: 2px solid var(--highlight-button-border);
+  box-shadow: 0 0 10px var(--highlight-button-border);
 } 
