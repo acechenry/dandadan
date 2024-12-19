@@ -180,14 +180,14 @@ export default function ManagePage() {
     if (!selectedImages.size) return
     if (!confirm(`确定要删除选中的 ${selectedImages.size} 张图片吗？`)) return
 
-    for (const fileName of selectedImages) {
-      try {
-        await handleDelete(fileName)
-      } catch (error) {
-        console.error(`Failed to delete ${fileName}:`, error)
-      }
+    try {
+      await Promise.all(
+        Array.from(selectedImages).map(fileName => handleDelete(fileName))
+      )
+      setSelectedImages(new Set())
+    } catch (error) {
+      console.error('Failed to delete some images:', error)
     }
-    setSelectedImages(new Set())
   }
 
   return (
