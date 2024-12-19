@@ -206,6 +206,7 @@
   flex-direction: column;
   height: auto;
   min-height: 320px;
+  position: relative;
 }
 
 .imageCard:hover {
@@ -485,4 +486,30 @@
   font-weight: 700;
   border: 2px solid var(--highlight-button-border);
   box-shadow: 0 0 10px var(--highlight-button-border);
+} 
+
+/* 勾选框容器 */
+.checkboxContainer {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  background: var(--card-bg);
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+/* 勾选框样式 */
+.imageCheckbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* 夜间主题特殊处理 */
+.containerDark .checkboxContainer {
+  border-color: var(--preview-border-color);
+  box-shadow: 0 0 5px var(--preview-border-color);
 } 
