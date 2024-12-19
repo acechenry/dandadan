@@ -337,13 +337,15 @@ export default function ManagePage() {
                     >
                       {copiedIndex === index ? '已复制' : 'BB'}
                     </button>
-                    <input
-                      type="checkbox"
-                      checked={selectedImages.has(image.fileName)}
-                      onChange={() => toggleSelect(image.fileName)}
-                      className={styles.imageCheckbox}
-                    />
                   </div>
+                </div>
+                <div className={styles.checkboxContainer}>
+                  <input
+                    type="checkbox"
+                    checked={selectedImages.has(image.fileName)}
+                    onChange={() => toggleSelect(image.fileName)}
+                    className={styles.imageCheckbox}
+                  />
                 </div>
               </div>
             ))}
