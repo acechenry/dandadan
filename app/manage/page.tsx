@@ -32,6 +32,8 @@ export default function ManagePage() {
   const [editingName, setEditingName] = useState<{[key: string]: string}>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
+  const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
   const router = useRouter()
 
   // 初始化主题
@@ -79,7 +81,7 @@ export default function ManagePage() {
         method: 'DELETE'
       })
       if (!res.ok) throw new Error('删除失败')
-      await fetchImages() // 重新加载图片列表
+      await fetchImages() // 重新加载图片��表
     } catch (error) {
       console.error('Delete error:', error)
       alert('删除失败')
@@ -131,6 +133,60 @@ export default function ManagePage() {
   const filteredImages = images.filter(image => 
     image.originalName.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // 获取图片尺寸
+  const getImageDimensions = (url: string, fileName: string) => {
+    const img = new Image()
+    img.onload = () => {
+      setImageDimensions(prev => ({
+        ...prev,
+        [fileName]: { width: img.width, height: img.height }
+      }))
+    }
+    img.src = url
+  }
+
+  // 加载图片时获取尺寸
+  useEffect(() => {
+    images.forEach(image => {
+      if (!imageDimensions[image.fileName]) {
+        getImageDimensions(image.url, image.fileName)
+      }
+    })
+  }, [images])
+
+  // 选择处理函数
+  const toggleSelect = (fileName: string) => {
+    const newSelected = new Set(selectedImages)
+    if (newSelected.has(fileName)) {
+      newSelected.delete(fileName)
+    } else {
+      newSelected.add(fileName)
+    }
+    setSelectedImages(newSelected)
+  }
+
+  const selectAll = () => {
+    setSelectedImages(new Set(images.map(img => img.fileName)))
+  }
+
+  const deselectAll = () => {
+    setSelectedImages(new Set())
+  }
+
+  const deleteSelected = async () => {
+    if (!selectedImages.size) return
+    if (!confirm(`确定要删除选中的 ${selectedImages.size} 张图片吗？`)) return
+
+    for (const fileName of selectedImages) {
+      try {
+        await handleDelete(fileName)
+      } catch (error) {
+        console.error(`Failed to delete ${fileName}:`, error)
+      }
+    }
+    setSelectedImages(new Set())
+  }
 
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
@@ -186,7 +242,7 @@ export default function ManagePage() {
 
       {/* 主内容区 */}
       <main className={styles.main}>
-        {/* 搜索框 */}
+        {/* 搜索栏 */}
         <div className={styles.searchBar}>
           <input
             type="text"
@@ -195,78 +251,77 @@ export default function ManagePage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
+          <button className={styles.searchButton}>
+            搜索
+          </button>
         </div>
 
-        {/* 图片网格 */}
-        <div className={styles.imageGrid}>
-          {filteredImages.map((image, index) => (
-            <div key={image.fileName} className={styles.imageCard}>
-              <div className={styles.imagePreview}>
-                <img
-                  src={image.url}
-                  alt={image.originalName}
-                />
-              </div>
-              <div className={styles.imageInfo}>
-                {editingName[image.fileName] !== undefined ? (
-                  <div className={styles.renameGroup}>
-                    <input
-                      type="text"
-                      value={editingName[image.fileName]}
-                      onChange={(e) => setEditingName(prev => ({
-                        ...prev,
-                        [image.fileName]: e.target.value
-                      }))}
-                      className={styles.renameInput}
-                    />
-                    <button
-                      onClick={() => handleRename(image.fileName)}
-                      className={styles.saveButton}
-                    >
-                      保存
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.nameRow}>
-                    <span className={styles.fileName}>{image.originalName}</span>
-                    <button
-                      onClick={() => setEditingName(prev => ({
-                        ...prev,
-                        [image.fileName]: image.originalName
-                      }))}
-                      className={styles.renameButton}
-                    >
-                      重命名
-                    </button>
-                  </div>
-                )}
-                <div className={styles.detailsRow}>
-                  <span>{formatDate(image.uploadTime)}</span>
-                  <span>{formatFileSize(image.size)}</span>
-                  {image.dimensions && (
-                    <span>{image.dimensions.width}x{image.dimensions.height}</span>
-                  )}
-                </div>
-                <div className={styles.buttonGroup}>
-                  {['markdown', 'bbcode', 'url'].map(type => (
-                    <button
-                      key={type}
-                      onClick={() => copyToClipboard(image[type as keyof ManagedImage] as string, index)}
-                      className={styles.copyButton}
-                    >
-                      {copiedIndex === index ? '已复制' : type.toUpperCase()}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => handleDelete(image.fileName)}
-                    className={styles.deleteButton}
-                  >
-                    删除
-                  </button>
-                </div>
-              </div>
+        {/* 总体预览模块 */}
+        <div className={styles.previewArea}>
+          <div className={styles.controlBar}>
+            <div className={styles.selectionButtons}>
+              <button onClick={selectAll} className={styles.selectButton}>
+                全选
+              </button>
+              <button onClick={deselectAll} className={styles.selectButton}>
+                取消全选
+              </button>
             </div>
-          ))}
+            {selectedImages.size > 0 && (
+              <button onClick={deleteSelected} className={styles.deleteSelectedButton}>
+                删除选中 ({selectedImages.size})
+              </button>
+            )}
+          </div>
+
+          {/* 图片网格 */}
+          <div className={styles.imageGrid}>
+            {filteredImages.map((image, index) => (
+              <div key={image.fileName} className={styles.imageCard}>
+                <input
+                  type="checkbox"
+                  checked={selectedImages.has(image.fileName)}
+                  onChange={() => toggleSelect(image.fileName)}
+                  className={styles.imageCheckbox}
+                />
+                <div className={styles.imagePreview}>
+                  <img src={image.url} alt={image.originalName} />
+                </div>
+                <div className={styles.imageInfo}>
+                  <div className={styles.fileName}>{image.originalName}</div>
+                  <div className={styles.detailsRow}>
+                    <span>{formatDate(image.uploadTime)}</span>
+                    <span>{formatFileSize(image.size)}</span>
+                    {imageDimensions[image.fileName] && (
+                      <span className={styles.imageDimensions}>
+                        {imageDimensions[image.fileName].width}x{imageDimensions[image.fileName].height}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.buttonGroup}>
+                    <button
+                      onClick={() => copyToClipboard(image.markdown, index)}
+                      className={`${styles.copyButton} ${styles.markdownButton}`}
+                    >
+                      {copiedIndex === index ? '已复制' : 'MD'}
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(image.url, index)}
+                      className={`${styles.copyButton} ${styles.urlButton}`}
+                    >
+                      {copiedIndex === index ? '已复制' : 'URL'}
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(image.bbcode, index)}
+                      className={`${styles.copyButton} ${styles.bbcodeButton}`}
+                    >
+                      {copiedIndex === index ? '已复制' : 'BB'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
