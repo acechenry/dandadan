@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import styles from './manage.module.css'
 import Link from 'next/link'
+import styles from './home.module.css'
+import { processFiles } from '@/utils/imageProcessor'
 
 // 网站标题和图标配置
 const SITE_CONFIG = {
@@ -12,34 +13,75 @@ const SITE_CONFIG = {
   favicon: "/favicon.ico"
 }
 
-// 定义图片类型
-interface ManagedImage {
+// 定义上传文件类型
+interface UploadedFile {
   originalName: string
   fileName: string
   url: string
   markdown: string
   bbcode: string
+  html: string
   size: number
-  dimensions?: {
-    width: number
-    height: number
-  }
+  type: string
   uploadTime: string
 }
 
-export default function ManagePage() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [images, setImages] = useState<ManagedImage[]>([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
-  const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [favoriteImages, setFavoriteImages] = useState<Set<string>>(new Set())
-  const router = useRouter()
+// 将超时时间提取为常量
+const UPLOAD_TIMEOUT = 30000 // 30 seconds
 
-  // 初始主题
+interface ImageProcessingSettings {
+  enableCompression: boolean
+  enableWebP: boolean
+}
+
+export default function HomePage() {
+  // 主题相关
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  
+  // 上传相关
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [processProgress, setProcessProgress] = useState(0)
+  const [dragActive, setDragActive] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // 预览相关
+  const [currentImages, setCurrentImages] = useState<UploadedFile[]>([])
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  
+  // 导航相关
+  const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // 设置相关
+  const [showSettings, setShowSettings] = useState(false)
+  const [settings, setSettings] = useState<ImageProcessingSettings>(() => {
+    // 默认设置
+    const defaultSettings = {
+      enableCompression: false,
+      enableWebP: false
+    }
+
+    // 只在客户端读取设置
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('imageProcessingSettings')
+      return savedSettings ? JSON.parse(savedSettings) : defaultSettings
+    }
+
+    return defaultSettings
+  })
+
+  // 保存设置
+  const saveSettings = (newSettings: ImageProcessingSettings) => {
+    setSettings(newSettings)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('imageProcessingSettings', JSON.stringify(newSettings))
+    }
+  }
+
+  // 初始化主题
   useEffect(() => {
+    // 只在客户端访问 localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme')
       if (savedTheme === 'dark') {
@@ -48,121 +90,168 @@ export default function ManagePage() {
     }
   }, [])
 
-  // 加载图片列表
-  useEffect(() => {
-    fetchImages()
-  }, [])
-
-  // 获取图片列表
-  const fetchImages = async () => {
-    try {
-      const res = await fetch('/api/images')
-      if (!res.ok) throw new Error('获取图片列表失败')
-      const data = await res.json()
-      setImages(data)
-    } catch (error) {
-      console.error('Failed to fetch images:', error)
-      alert('获取图片列表失败')
+  // 切换主题时
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light')
     }
   }
 
-  // 复制链接
+  // 处理拖拽事件
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  // 处理文件拖放
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      await handleUpload(files)
+    }
+  }
+
+  // 处理文件选择
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      await handleUpload(files)
+    }
+  }
+
+  // 修改上传处理函数
+  const handleUpload = async (files: File[]) => {
+    setIsUploading(true)
+    setUploadProgress(0)
+    setProcessProgress(0)
+    
+    try {
+      // 使用正确的参数类型
+      const processedFiles = await processFiles(
+        files,
+        {
+          enableCompression: settings.enableCompression,
+          enableWebP: settings.enableWebP
+        },
+        setProcessProgress  // 作为第三个参数传递进度回调
+      )
+      
+      const formData = new FormData()
+      const xhr = new XMLHttpRequest()
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100)
+          if (progress !== uploadProgress) {
+            setUploadProgress(progress)
+          }
+        }
+      })
+
+      const uploadPromise = new Promise((resolve, reject) => {
+        xhr.open('POST', '/api/upload')
+        
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText))
+          } else {
+            reject(new Error('上传失败'))
+          }
+        }
+        
+        xhr.onerror = () => reject(new Error('网络错误'))
+        
+        processedFiles.forEach(file => {
+          formData.append('files', file)
+        })
+        
+        xhr.send(formData)
+      })
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('上传超时')), UPLOAD_TIMEOUT)
+      })
+
+      const data = await Promise.race([uploadPromise, timeoutPromise])
+      
+      setCurrentImages(prev => [...(data as any).files, ...prev])
+      setUploadProgress(100)
+    } catch (error: unknown) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Upload error:', error)
+      }
+      if (error instanceof Error) {
+        alert(error.message || '上传失败，请重试')
+      } else {
+        alert('上传失败，请重试')
+      }
+    } finally {
+      setTimeout(() => {
+        setIsUploading(false)
+        setUploadProgress(0)
+        setProcessProgress(0)
+      }, 500)
+    }
+  }
+
+  // 复制到剪贴板
   const copyToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text)
       .then(() => {
         setCopiedIndex(index)
         setTimeout(() => setCopiedIndex(null), 2000)
       })
-      .catch(err => console.error('Failed to copy:', err))
+      .catch(() => {})
   }
 
-  // 格式化文件大小
+  // @ts-ignore - 暂时保留这个函数以备将来使用
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B'
     const k = 1024
     const sizes = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
+    const size = (bytes / Math.pow(k, i)).toFixed(2)
+    return `${size} ${sizes[i]}`
   }
 
-  // 格式化日期
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString()
-  }
-
-  // 过滤图片
-  const filteredImages = images.filter(image => 
-    image.originalName.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  // 获取图片尺寸
-  const getImageDimensions = (url: string, fileName: string) => {
-    const img = new window.Image()
-    img.onload = () => {
-      setImageDimensions(prev => ({
-        ...prev,
-        [fileName]: { width: img.width, height: img.height }
-      }))
-    }
-    img.src = url
-  }
-
-  // 加载图片时获取尺寸
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      images.forEach(image => {
-        if (!imageDimensions[image.fileName]) {
-          getImageDimensions(image.url, image.fileName)
-        }
-      })
-    }
-  }, [images])
-
-  // 选择处理函数
-  const toggleSelect = (fileName: string) => {
-    const newSelected = new Set(selectedImages)
-    if (newSelected.has(fileName)) {
-      newSelected.delete(fileName)
-    } else {
-      newSelected.add(fileName)
-    }
-    setSelectedImages(newSelected)
-  }
-
-  const selectAll = () => {
-    setSelectedImages(new Set(images.map(img => img.fileName)))
-  }
-
-  const deselectAll = () => {
-    setSelectedImages(new Set())
-  }
-
-  // 批量删除
-  const deleteSelected = async () => {
-    if (!selectedImages.size) return
-    if (!confirm(`确定删除选中的 ${selectedImages.size} 张图片吗？`)) return
-
+  // 修改退出登录按钮的处理函数
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    
     try {
-      const promises = Array.from(selectedImages).map(fileName =>
-        fetch(`/api/images/${fileName}`, { method: 'DELETE' })
-      )
-      await Promise.all(promises)
-      await fetchImages() // 重新加载图片列表
-      setSelectedImages(new Set())
+      const res = await fetch('/api/logout', { 
+        method: 'POST',
+        credentials: 'include'
+      })
+      if (res.ok) {
+        router.push('/login')
+      } else {
+        throw new Error('登出失败')
+      }
     } catch (error) {
-      console.error('Failed to delete some images:', error)
-      alert('部分图片删除失败')
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Logout error:', error)
+      }
+      alert('登出失败，请重试')
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
-  // 添加预览函数
-  const openPreview = (url: string) => {
-    setPreviewImage(url)
-  }
-
-  const closePreview = () => {
-    setPreviewImage(null)
-  }
+  // 添加收藏态
+  const [favoriteImages, setFavoriteImages] = useState<Set<string>>(new Set())
 
   // 添加收藏函数
   const toggleFavorite = async (fileName: string) => {
@@ -198,18 +287,17 @@ export default function ManagePage() {
     }
   }
 
-  // 在现有的 useEffect 钩子之后添加
+  // 添加初始化收藏列表的 useEffect
   useEffect(() => {
-    // 获取收藏列表
     const fetchFavorites = async () => {
       try {
         const res = await fetch('/api/favorites')
         if (!res.ok) throw new Error('获取收藏列表失败')
         const data = await res.json()
-        const fileNames: string[] = data.map((item: { Key: string }) => 
-          item.Key.replace('favorites/', '')
+        const favoriteFileNames = new Set(
+          data.map((item: { Key: string }) => item.Key.replace('favorites/', ''))
         )
-        setFavoriteImages(new Set(fileNames))
+        setFavoriteImages(favoriteFileNames as Set<string>)
       } catch (error) {
         console.error('Failed to fetch favorites:', error)
       }
@@ -235,35 +323,34 @@ export default function ManagePage() {
           </div>
           
           <nav className={styles.nav}>
+            <button className={styles.button}>
+              上传图片
+            </button>
+            
             <Link 
-              href="/home"
+              href="/manage"
               className={styles.button}
             >
-              上传图片
+              图片管理
             </Link>
             
-            <button className={`${styles.button} ${styles.highlight}`}>
-              图片管理
-            </button>
-            
-            <button
-              onClick={() => {
-                fetch('/api/logout', { method: 'POST' })
-                  .then(() => router.push('/login'))
-              }}
+            <Link 
+              href="/settings"
               className={styles.button}
             >
-              退出登录
+              上传设置
+            </Link>
+            
+            <button
+              onClick={handleLogout}
+              className={styles.button}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? '退出中...' : '退出登录'}
             </button>
             
             <button
-              onClick={() => {
-                const newTheme = !isDarkMode
-                setIsDarkMode(newTheme)
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('theme', newTheme ? 'dark' : 'light')
-                }
-              }}
+              onClick={toggleTheme}
               className={styles.button}
             >
               {isDarkMode ? '☀️' : '🌙'}
@@ -274,97 +361,87 @@ export default function ManagePage() {
 
       {/* 主内容区 */}
       <main className={styles.main}>
-        {/* 总体预览模块 */}
-        <div className={styles.previewArea}>
-          <div className={styles.controlBar}>
-            {/* 左侧选择按钮组 */}
-            <div className={styles.selectionButtons}>
-              <button onClick={selectAll} className={styles.selectButton}>
-                全选
-              </button>
-              <button onClick={deselectAll} className={styles.selectButton}>
-                不选
-              </button>
-              <button 
-                onClick={() => {
-                  const allFileNames = images.map(img => img.fileName)
-                  const newSelected = new Set(
-                    allFileNames.filter(fileName => !selectedImages.has(fileName))
-                  )
-                  setSelectedImages(newSelected)
-                }} 
-                className={styles.selectButton}
-              >
-                反选
-              </button>
-              {selectedImages.size > 0 && (
-                <button onClick={deleteSelected} className={styles.deleteSelectedButton}>
-                  删除选中 ({selectedImages.size})
-                </button>
-              )}
-            </div>
-
-            {/* 右侧搜索框 */}
-            <div className={styles.searchGroup}>
-              <input
-                type="text"
-                placeholder="搜索图片..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
-              />
-              <button className={styles.searchButton}>
-                搜索
-              </button>
-            </div>
-          </div>
-
-          {/* 图片网格 */}
-          <div className={styles.imageGrid}>
-            {filteredImages.map((image, index) => (
-              <div key={image.fileName} className={styles.imageCard}>
-                <div className={styles.imagePreview} onClick={() => openPreview(image.url)}>
-                  <img src={image.url} alt={image.originalName} />
+        {/* 上传区域 */}
+        <div className={styles.uploadArea}>
+          <div
+            className={`${styles.dropZone} ${dragActive ? styles.dropZoneActive : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              multiple
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            {isUploading ? (
+              <div className={styles.uploadingState}>
+                <p>{processProgress < 100 ? '处理中...' : '上传中...'}</p>
+                <div className={styles.progressBar}>
+                  <div 
+                    className={styles.progressFill}
+                    style={{ 
+                      width: `${processProgress < 100 ? processProgress : uploadProgress}%` 
+                    }}
+                  />
                 </div>
-                <div className={styles.imageInfo}>
-                  <div className={styles.fileName}>{image.originalName}</div>
-                  <div className={styles.detailsGroup}>
-                    <div className={styles.detailItem}>
-                      <span>上传时间：</span>
-                      <span>{formatDate(image.uploadTime)}</span>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>文件大小：</span>
-                      <span>{formatFileSize(image.size)}</span>
-                    </div>
-                    {imageDimensions[image.fileName] && (
-                      <div className={styles.detailItem}>
-                        <span>图片尺寸：</span>
-                        <span>
-                          {imageDimensions[image.fileName].width}x{imageDimensions[image.fileName].height}
-                        </span>
+              </div>
+            ) : (
+              <>
+                <div className={styles.uploadIcon} />
+                <p className={styles.uploadText}>点击或拖拽图片到这里上传</p>
+              </>
+            )}
+          </div>
+          <button 
+            className={styles.settingsButton}
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙️
+          </button>
+        </div>
+
+        {/* 预览区 */}
+        {currentImages.length > 0 && (
+          <div className={styles.previewArea}>
+            <div className={styles.previewGrid}>
+              {currentImages.map((image, index) => (
+                <div key={image.fileName} className={styles.previewCard}>
+                  <div className={styles.imagePreview}>
+                    <img
+                      src={image.url}
+                      alt={image.originalName}
+                    />
+                  </div>
+                  <div className={styles.urlGroup}>
+                    {[
+                      { label: '直链', value: image.url },
+                      { label: 'Markdown', value: image.markdown },
+                      { label: 'BBCode', value: image.bbcode }
+                    ].map(({ label, value }) => (
+                      <div key={label} className={styles.urlItem}>
+                        <span className={styles.urlLabel}>{label}</span>
+                        <input
+                          type="text"
+                          value={value}
+                          readOnly
+                          className={styles.urlInput}
+                        />
+                        <button
+                          onClick={() => copyToClipboard(value, index)}
+                          className={styles.copyButton}
+                        >
+                          {copiedIndex === index ? '已复制' : '复制'}
+                        </button>
                       </div>
-                    )}
+                    ))}
                   </div>
                   <div className={styles.buttonGroup}>
-                    <button
-                      onClick={() => copyToClipboard(image.markdown, index)}
-                      className={`${styles.copyButton} ${styles.markdownButton}`}
-                    >
-                      {copiedIndex === index ? '已复制' : 'MD'}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(image.url, index)}
-                      className={`${styles.copyButton} ${styles.urlButton}`}
-                    >
-                      {copiedIndex === index ? '已复制' : 'URL'}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(image.bbcode, index)}
-                      className={`${styles.copyButton} ${styles.bbcodeButton}`}
-                    >
-                      {copiedIndex === index ? '已复制' : 'BB'}
-                    </button>
                     <button
                       onClick={() => toggleFavorite(image.fileName)}
                       className={`${styles.copyButton} ${favoriteImages.has(image.fileName) ? styles.favoriteActive : styles.favorite}`}
@@ -373,34 +450,47 @@ export default function ManagePage() {
                     </button>
                   </div>
                 </div>
-                <div className={styles.checkboxContainer}>
-                  <input
-                    type="checkbox"
-                    checked={selectedImages.has(image.fileName)}
-                    onChange={() => toggleSelect(image.fileName)}
-                    className={styles.imageCheckbox}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </main>
+        )}
 
-      {/* 预览模态框 */}
-      {previewImage && (
-        <div className={styles.previewModal} onClick={closePreview}>
-          <div className={styles.previewContent}>
-            <img src={previewImage} alt="Preview" />
-            <button 
-              className={styles.closeButton}
-              onClick={closePreview}
-            >
-              ✕
+        {/* 设置面板 */}
+        {showSettings && (
+          <div className={styles.settingsPanel}>
+            <h3>图片处理设置</h3>
+            <div className={styles.settingItem}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={settings.enableCompression}
+                  onChange={(e) => saveSettings({
+                    ...settings,
+                    enableCompression: e.target.checked
+                  })}
+                />
+                启用图片压缩（推荐用于大图片）
+              </label>
+            </div>
+            <div className={styles.settingItem}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={settings.enableWebP}
+                  onChange={(e) => saveSettings({
+                    ...settings,
+                    enableWebP: e.target.checked
+                  })}
+                />
+                转换为 WebP 格式（可能低兼容性）
+              </label>
+            </div>
+            <button onClick={() => setShowSettings(false)}>
+              关闭
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   )
-} 
+}
