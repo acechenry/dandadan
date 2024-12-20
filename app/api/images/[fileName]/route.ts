@@ -13,7 +13,6 @@ const s3Client = new S3Client({
 })
 
 export async function DELETE(
-  request: Request,
   { params }: { params: { fileName: string } }
 ) {
   // 验证登录状态
