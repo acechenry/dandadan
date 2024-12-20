@@ -204,6 +204,16 @@ export default function HomePage() {
       .catch(() => {})
   }
 
+  // @ts-ignore - 暂时保留这个函数以备将来使用
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    const size = (bytes / Math.pow(k, i)).toFixed(2)
+    return `${size} ${sizes[i]}`
+  }
+
   // 修改退出登录按钮的处理函数
   const handleLogout = async () => {
     if (isLoggingOut) return
@@ -254,7 +264,11 @@ export default function HomePage() {
           body: JSON.stringify({ fileName })
         })
         if (!res.ok) throw new Error('添加收藏失败')
-        setFavoriteImages(prev => new Set([...prev, fileName]))
+        setFavoriteImages(prev => {
+          const next = new Set(prev)
+          next.add(fileName)
+          return next
+        })
       }
     } catch (error) {
       console.error('Favorite error:', error)
@@ -381,7 +395,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* 预览区��� */}
+        {/* 预览区 */}
         {currentImages.length > 0 && (
           <div className={styles.previewArea}>
             <div className={styles.previewGrid}>
