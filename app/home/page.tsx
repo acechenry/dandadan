@@ -284,9 +284,9 @@ export default function HomePage() {
         if (!res.ok) throw new Error('获取收藏列表失败')
         const data = await res.json()
         const favoriteFileNames = new Set(
-          data.map((item: any) => item.Key.replace('favorites/', ''))
+          data.map((item: { Key: string }) => item.Key.replace('favorites/', ''))
         )
-        setFavoriteImages(favoriteFileNames)
+        setFavoriteImages(favoriteFileNames as Set<string>)
       } catch (error) {
         console.error('Failed to fetch favorites:', error)
       }
