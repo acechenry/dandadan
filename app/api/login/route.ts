@@ -7,7 +7,7 @@ interface LoginRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
+    const data = await request.json() as LoginRequest
     const receivedPassword = data.password
     const expectedPassword = process.env.ACCESS_PASSWORD
     
@@ -40,11 +40,10 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     )
   } catch (error) {
-    // 保留错误日志，这对调试很重要
     console.error('Login error:', error)
     return NextResponse.json(
       { success: false, message: '服务器错误' },
       { status: 500 }
     )
   }
-}
+} 
