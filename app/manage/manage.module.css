@@ -472,7 +472,7 @@
   /* 如果想在focus时有自定义样式，可以添加这个 */
   .imageCheckbox:focus {
     outline: none;
-    /* 可以添加��定义的focus样式，比如: */
+    /* 可以添加定义的focus样式，比如: */
     /* box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); */
   }
   
@@ -518,10 +518,5 @@
   /* 修改图片预览区域样式 */
   .imagePreview {
     cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  
-  .imagePreview:hover {
-    opacity: 0.9;
   }
   
