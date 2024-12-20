@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { 
   S3Client, 
   CopyObjectCommand, 
@@ -17,7 +17,7 @@ const s3Client = new S3Client({
 })
 
 // 添加到收藏
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const cookieStore = cookies()
   const auth = cookieStore.get('auth')
   if (!auth) {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 获取收藏列表
-export async function GET(request: NextRequest) {
+export async function GET() {
   const cookieStore = cookies()
   const auth = cookieStore.get('auth')
   if (!auth) {
