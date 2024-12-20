@@ -50,8 +50,14 @@ export default function FavoritesPage() {
       const res = await fetch('/api/favorites')
       if (!res.ok) throw new Error('获取收藏列表失败')
       const data = await res.json()
-      const files = data.map((item: FavoriteImage) => ({
-        // ... 处理数据
+      const files = data.map((item: { Key: string }) => ({
+        originalName: item.Key.split('/').pop() || '',
+        fileName: item.Key.replace('favorites/', ''),
+        url: `${process.env.NEXT_PUBLIC_CDN_URL}/${item.Key}`,
+        markdown: `![${item.Key.split('/').pop()}](${process.env.NEXT_PUBLIC_CDN_URL}/${item.Key})`,
+        bbcode: `[img]${process.env.NEXT_PUBLIC_CDN_URL}/${item.Key}[/img]`,
+        size: 0,  // 这个信息可能需要从 S3 元数据中获取
+        uploadTime: new Date().toISOString()  // 这个信息也可能需要从 S3 元数据中获取
       }))
       setImages(files)
     } catch (error) {
