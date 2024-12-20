@@ -13,7 +13,7 @@ const s3Client = new S3Client({
 })
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: { fileName: string } }
 ) {
   const cookieStore = cookies()
