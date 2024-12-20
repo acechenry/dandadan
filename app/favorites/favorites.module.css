@@ -22,26 +22,22 @@
   --button-font-base: 16px;
 }
 
-/* 继承其他样式 */
-.header,
-.headerContent,
-.logo,
-.title,
-.nav,
-.button,
-.highlight,
-.main,
-.imageGrid,
-.imageCard,
-.imagePreview,
-.imageInfo,
-.fileName,
-.buttonGroup,
-.copyButton,
-.markdownButton,
-.urlButton,
-.bbcodeButton {
-  composes: from '../manage/manage.module.css';
+/* 修改继承语法 */
+.header {
+  composes: header from '../manage/manage.module.css';
+}
+
+.headerContent {
+  composes: headerContent from '../manage/manage.module.css';
+}
+
+/* 依此类推，每个类单独继承 */
+.logo {
+  composes: logo from '../manage/manage.module.css';
+}
+
+.title {
+  composes: title from '../manage/manage.module.css';
 }
 
 /* 特殊样式 */
