@@ -204,16 +204,6 @@ export default function HomePage() {
       .catch(() => {})
   }
 
-  // 格式化文件大小
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    const size = (bytes / Math.pow(k, i)).toFixed(2)
-    return `${size} ${sizes[i]}`
-  }
-
   // 修改退出登录按钮的处理函数
   const handleLogout = async () => {
     if (isLoggingOut) return
@@ -391,7 +381,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* 预览区域 */}
+        {/* 预览区��� */}
         {currentImages.length > 0 && (
           <div className={styles.previewArea}>
             <div className={styles.previewGrid}>
