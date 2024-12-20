@@ -7,7 +7,15 @@ export function middleware(request: NextRequest) {
   const isAuthenticated = !!auth
   
   // 需要保护的路由
-  const protectedPaths = ['/home', '/manage']
+  const protectedPaths = ['/home', '/manage', '/favorites']
+  
+  // 调试日志（生产环境可以移除）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Middleware check:', {
+      path: pathname,
+      isAuthenticated,
+    })
+  }
 
   // 如果访问根路径，重定向到登录页
   if (pathname === '/') {
@@ -31,5 +39,5 @@ export function middleware(request: NextRequest) {
 
 // 只匹配需要处理的路由
 export const config = {
-  matcher: ['/', '/login', '/home', '/manage']
-}
+  matcher: ['/', '/login', '/home', '/manage', '/favorites']
+} 
