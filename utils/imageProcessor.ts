@@ -1,3 +1,5 @@
+// 将类型声明移动到单独的文件
+// types/browser-image-compression.d.ts
 declare module 'browser-image-compression' {
   export default function imageCompression(
     file: File,
