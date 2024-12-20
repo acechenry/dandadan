@@ -75,20 +75,6 @@ export default function ManagePage() {
       .catch(err => console.error('Failed to copy:', err))
   }
 
-  // 删除图片
-  const handleDelete = async (fileName: string) => {
-    try {
-      const res = await fetch(`/api/images/${fileName}`, {
-        method: 'DELETE'
-      })
-      if (!res.ok) throw new Error('删除失败')
-      await fetchImages() // 重新加载图片列表
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('删除失败')
-    }
-  }
-
   // 重命名图片
   const handleRename = async (fileName: string) => {
     const newName = editingName[fileName]
