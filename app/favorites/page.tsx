@@ -33,9 +33,11 @@ export default function FavoritesPage() {
 
   // 初始化主题
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme === 'dark') {
+        setIsDarkMode(true)
+      }
     }
   }, [])
 
@@ -148,7 +150,9 @@ export default function FavoritesPage() {
               onClick={() => {
                 const newTheme = !isDarkMode
                 setIsDarkMode(newTheme)
-                localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+                }
               }}
               className={styles.button}
             >
