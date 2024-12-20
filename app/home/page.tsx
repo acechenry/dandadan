@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './home.module.css'
+import { processFiles } from '@/demo/imageProcessor/imageProcessor'
 
 // 网站标题和图标配置
 const SITE_CONFIG = {
@@ -28,16 +29,46 @@ interface UploadedFile {
 // 将超时时间提取为常量
 const UPLOAD_TIMEOUT = 30000 // 30 seconds
 
+interface ImageProcessingSettings {
+  enableCompression: boolean
+  enableWebP: boolean
+}
+
 export default function HomePage() {
+  // 主题相关
   const [isDarkMode, setIsDarkMode] = useState(false)
+  
+  // 上传相关
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [processProgress, setProcessProgress] = useState(0)
   const [dragActive, setDragActive] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // 预览相关
   const [currentImages, setCurrentImages] = useState<UploadedFile[]>([])
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // 导航相关
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // 设置相关
+  const [showSettings, setShowSettings] = useState(false)
+  const [settings, setSettings] = useState<ImageProcessingSettings>(() => {
+    // 从 localStorage 读取用户的偏好设置
+    const savedSettings = localStorage.getItem('imageProcessingSettings')
+    return savedSettings ? JSON.parse(savedSettings) : {
+      enableCompression: false,
+      enableWebP: false
+    }
+  })
+
+  // 保存设置
+  const saveSettings = (newSettings: ImageProcessingSettings) => {
+    setSettings(newSettings)
+    localStorage.setItem('imageProcessingSettings', JSON.stringify(newSettings))
+  }
 
   // 初始化主题
   useEffect(() => {
@@ -88,20 +119,19 @@ export default function HomePage() {
     }
   }
 
-  // 处理文件上传
+  // 修改上传处理函数
   const handleUpload = async (files: File[]) => {
     setIsUploading(true)
     setUploadProgress(0)
+    setProcessProgress(0)
     
     try {
+      // 直接处理图片，不做大小限制
+      const processedFiles = await processFiles(files, setProcessProgress)
+      
       const formData = new FormData()
-      const totalSize = files.reduce((acc, file) => acc + file.size, 0)
-      let uploadedSize = 0
-
-      // 创建 XMLHttpRequest 来跟踪上传进度
       const xhr = new XMLHttpRequest()
       
-      // 处理上传进度
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
           const progress = Math.round((event.loaded / event.total) * 100)
@@ -111,7 +141,6 @@ export default function HomePage() {
         }
       })
 
-      // 创建 Promise 包装 XHR
       const uploadPromise = new Promise((resolve, reject) => {
         xhr.open('POST', '/api/upload')
         
@@ -125,24 +154,19 @@ export default function HomePage() {
         
         xhr.onerror = () => reject(new Error('网络错误'))
         
-        // 添加文件到 FormData
-        files.forEach(file => {
+        processedFiles.forEach(file => {
           formData.append('files', file)
         })
         
-        // 发送请求
         xhr.send(formData)
       })
 
-      // 设置超时控制
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('上传超时')), UPLOAD_TIMEOUT)
       })
 
-      // 等待上传完成或超时
       const data = await Promise.race([uploadPromise, timeoutPromise])
       
-      // 更新预览
       setCurrentImages(prev => [...(data as any).files, ...prev])
       setUploadProgress(100)
     } catch (error: unknown) {
@@ -155,10 +179,10 @@ export default function HomePage() {
         alert('上传失败，请重试')
       }
     } finally {
-      // 延迟重置上传状态，让用户看到100%的进度
       setTimeout(() => {
         setIsUploading(false)
         setUploadProgress(0)
+        setProcessProgress(0)
       }, 500)
     }
   }
@@ -208,6 +232,58 @@ export default function HomePage() {
     }
   }
 
+  // 添加收藏���态
+  const [favoriteImages, setFavoriteImages] = useState<Set<string>>(new Set())
+
+  // 添加收藏函数
+  const toggleFavorite = async (fileName: string) => {
+    try {
+      if (favoriteImages.has(fileName)) {
+        const res = await fetch(`/api/favorites/${fileName}`, {
+          method: 'DELETE'
+        })
+        if (!res.ok) throw new Error('取消收藏失败')
+        setFavoriteImages(prev => {
+          const next = new Set(prev)
+          next.delete(fileName)
+          return next
+        })
+      } else {
+        const res = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ fileName })
+        })
+        if (!res.ok) throw new Error('添加收藏失败')
+        setFavoriteImages(prev => new Set([...prev, fileName]))
+      }
+    } catch (error) {
+      console.error('Favorite error:', error)
+      alert('操作失败')
+    }
+  }
+
+  // 添加初始化收藏列表的 useEffect
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch('/api/favorites')
+        if (!res.ok) throw new Error('获取收藏列表失败')
+        const data = await res.json()
+        const favoriteFileNames = new Set(
+          data.map((item: any) => item.Key.replace('favorites/', ''))
+        )
+        setFavoriteImages(favoriteFileNames)
+      } catch (error) {
+        console.error('Failed to fetch favorites:', error)
+      }
+    }
+
+    fetchFavorites()
+  }, [])
+
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -234,6 +310,13 @@ export default function HomePage() {
               className={styles.button}
             >
               图片管理
+            </Link>
+            
+            <Link 
+              href="/settings"
+              className={styles.button}
+            >
+              上传设置
             </Link>
             
             <button
@@ -276,11 +359,13 @@ export default function HomePage() {
             />
             {isUploading ? (
               <div className={styles.uploadingState}>
-                <p>上传中...</p>
+                <p>{processProgress < 100 ? '处理中...' : '上传中...'}</p>
                 <div className={styles.progressBar}>
                   <div 
                     className={styles.progressFill}
-                    style={{ width: `${uploadProgress}%` }}
+                    style={{ 
+                      width: `${processProgress < 100 ? processProgress : uploadProgress}%` 
+                    }}
                   />
                 </div>
               </div>
@@ -291,6 +376,12 @@ export default function HomePage() {
               </>
             )}
           </div>
+          <button 
+            className={styles.settingsButton}
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙️
+          </button>
         </div>
 
         {/* 预览区域 */}
@@ -328,9 +419,53 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
+                  <div className={styles.buttonGroup}>
+                    <button
+                      onClick={() => toggleFavorite(image.fileName)}
+                      className={`${styles.copyButton} ${favoriteImages.has(image.fileName) ? styles.favoriteActive : styles.favorite}`}
+                    >
+                      {favoriteImages.has(image.fileName) ? '已收藏' : '收藏'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 设置面板 */}
+        {showSettings && (
+          <div className={styles.settingsPanel}>
+            <h3>图片处理设置</h3>
+            <div className={styles.settingItem}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={settings.enableCompression}
+                  onChange={(e) => saveSettings({
+                    ...settings,
+                    enableCompression: e.target.checked
+                  })}
+                />
+                启用图片压缩（推荐用于大图片）
+              </label>
+            </div>
+            <div className={styles.settingItem}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={settings.enableWebP}
+                  onChange={(e) => saveSettings({
+                    ...settings,
+                    enableWebP: e.target.checked
+                  })}
+                />
+                转换为 WebP 格式（可能低兼容性）
+              </label>
+            </div>
+            <button onClick={() => setShowSettings(false)}>
+              关闭
+            </button>
           </div>
         )}
       </main>
