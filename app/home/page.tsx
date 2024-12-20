@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import styles from './home.module.css'
-import { processFiles } from '@/demo/imageProcessor/imageProcessor'
+import { processFiles } from '@/utils/imageProcessor'
 
 // 网站标题和图标配置
 const SITE_CONFIG = {
