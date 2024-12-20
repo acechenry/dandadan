@@ -30,7 +30,6 @@ interface ManagedImage {
 export default function ManagePage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [images, setImages] = useState<ManagedImage[]>([])
-  const [editingName, setEditingName] = useState<{[key: string]: string}>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
@@ -73,33 +72,6 @@ export default function ManagePage() {
         setTimeout(() => setCopiedIndex(null), 2000)
       })
       .catch(err => console.error('Failed to copy:', err))
-  }
-
-  // 重命名图片
-  const handleRename = async (fileName: string) => {
-    const newName = editingName[fileName]
-    if (!newName) return
-
-    try {
-      const res = await fetch(`/api/images/${fileName}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ newName })
-      })
-      if (!res.ok) throw new Error('重命名失败')
-      
-      setEditingName(prev => {
-        const next = { ...prev }
-        delete next[fileName]
-        return next
-      })
-      await fetchImages() // 重新加载图片列表
-    } catch (error) {
-      console.error('Rename error:', error)
-      alert('重命名失败')
-    }
   }
 
   // 格式化文件大小
