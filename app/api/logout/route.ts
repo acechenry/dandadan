@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function POST() {
   const response = NextResponse.json({ success: true })
   
-  // 删除认证 cookie
-  response.cookies.delete('auth')
+  // 清除 cookie
+  response.cookies.set('auth', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0  // 立即过期
+  })
   
   return response
 } 
