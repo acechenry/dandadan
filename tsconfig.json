@@ -20,7 +20,14 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["react", "node"],
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
