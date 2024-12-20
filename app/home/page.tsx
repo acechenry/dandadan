@@ -126,8 +126,15 @@ export default function HomePage() {
     setProcessProgress(0)
     
     try {
-      // 直接处理图片，不做大小限制
-      const processedFiles = await processFiles(files, setProcessProgress)
+      // 使用正确的参数类型
+      const processedFiles = await processFiles(
+        files,
+        {
+          enableCompression: settings.enableCompression,
+          enableWebP: settings.enableWebP
+        },
+        setProcessProgress  // 作为第三个参数传递进度回调
+      )
       
       const formData = new FormData()
       const xhr = new XMLHttpRequest()
@@ -232,7 +239,7 @@ export default function HomePage() {
     }
   }
 
-  // 添加收藏���态
+  // 添加收藏态
   const [favoriteImages, setFavoriteImages] = useState<Set<string>>(new Set())
 
   // 添加收藏函数
