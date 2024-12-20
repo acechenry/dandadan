@@ -13,7 +13,7 @@ const s3Client = new S3Client({
 })
 
 export async function DELETE(
-  _request: Request,
+  _request: Request,  // 添加下划线前缀表示未使用的参数
   { params }: { params: { fileName: string } }
 ) {
   const cookieStore = cookies()
@@ -41,4 +41,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-} 
+}
