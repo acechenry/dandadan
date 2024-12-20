@@ -35,9 +35,10 @@ export default function ManagePage() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
   const router = useRouter()
 
-  // 初始��主题
+  // 初始主题
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark') {
@@ -193,6 +194,15 @@ export default function ManagePage() {
     }
   }
 
+  // 添加预览函数
+  const openPreview = (url: string) => {
+    setPreviewImage(url)
+  }
+
+  const closePreview = () => {
+    setPreviewImage(null)
+  }
+
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -296,7 +306,7 @@ export default function ManagePage() {
           <div className={styles.imageGrid}>
             {filteredImages.map((image, index) => (
               <div key={image.fileName} className={styles.imageCard}>
-                <div className={styles.imagePreview}>
+                <div className={styles.imagePreview} onClick={() => openPreview(image.url)}>
                   <img src={image.url} alt={image.originalName} />
                 </div>
                 <div className={styles.imageInfo}>
@@ -353,6 +363,21 @@ export default function ManagePage() {
           </div>
         </div>
       </main>
+
+      {/* 预览模态框 */}
+      {previewImage && (
+        <div className={styles.previewModal} onClick={closePreview}>
+          <div className={styles.previewContent}>
+            <img src={previewImage} alt="Preview" />
+            <button 
+              className={styles.closeButton}
+              onClick={closePreview}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
