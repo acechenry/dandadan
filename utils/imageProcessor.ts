@@ -4,7 +4,7 @@ import imageCompression from 'browser-image-compression'
 const IMAGE_PROCESSING_OPTIONS = {
   maxSizeMB: 1,
   maxWidthOrHeight: 1920,
-  useWebP: true,
+  useWebP: false,
   initialQuality: 0.8,
   preserveExif: false,
   alwaysKeepResolution: true,
@@ -16,65 +16,90 @@ const IMAGE_PROCESSING_OPTIONS = {
 // 每批处理的图片数量
 const BATCH_SIZE = 3
 
+// 添加 WebP 支持检查函数
+function checkWebPSupport(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const webP = new Image()
+    webP.onload = () => resolve(true)
+    webP.onerror = () => resolve(false)
+    webP.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA=='
+  })
+}
+
+interface ProcessingOptions {
+  enableCompression: boolean
+  enableWebP: boolean
+}
+
 // 处理单个图片
-export async function processImage(file: File): Promise<File> {
+export async function processImage(file: File, options: ProcessingOptions): Promise<File> {
   try {
-    // 尝试压缩图片
-    let processedFile
-    try {
-      processedFile = await imageCompression(file, IMAGE_PROCESSING_OPTIONS)
-    } catch (compressError) {
-      console.warn('Compression failed, using original file:', compressError)
-      processedFile = file  // 压缩失败时使用原文件
+    // 根据设置决定是否压缩
+    let processedFile = file
+    if (options.enableCompression) {
+      try {
+        processedFile = await imageCompression(file, {
+          ...IMAGE_PROCESSING_OPTIONS,
+          useWebP: false // ���压缩和格式转换
+        })
+      } catch (compressError) {
+        console.warn('Compression failed, using original file:', compressError)
+      }
     }
 
-    // 尝试 WebP 转换
-    try {
-      // 检查浏览器环境和 API 支持
-      const canUseWebP = typeof window !== 'undefined' && 
-                        'createImageBitmap' in window &&
-                        typeof document !== 'undefined' &&
-                        'createElement' in document
+    // 根据设置决定是否转换为 WebP
+    if (options.enableWebP) {
+      try {
+        const canUseWebP = typeof window !== 'undefined' && 
+                          'createImageBitmap' in window &&
+                          typeof document !== 'undefined' &&
+                          'createElement' in document &&
+                          await checkWebPSupport()
 
-      if (IMAGE_PROCESSING_OPTIONS.useWebP && canUseWebP) {
-        const canvas = document.createElement('canvas')
-        // 检查 canvas 是否支持 toBlob
-        if (!canvas.toBlob) {
-          throw new Error('Canvas toBlob not supported')
+        if (canUseWebP) {
+          const canvas = document.createElement('canvas')
+          if (!canvas.toBlob) {
+            throw new Error('Canvas toBlob not supported')
+          }
+
+          const bitmap = await createImageBitmap(processedFile)
+          canvas.width = bitmap.width
+          canvas.height = bitmap.height
+          
+          const ctx = canvas.getContext('2d')
+          if (!ctx) throw new Error('Failed to get canvas context')
+          
+          ctx.drawImage(bitmap, 0, 0)
+          
+          // 如果浏览器不支持 WebP，使用原始格式
+          const mimeType = canUseWebP ? 'image/webp' : processedFile.type
+          const extension = canUseWebP ? '.webp' : ''
+          
+          const blob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((b) => resolve(b!), mimeType, 0.8)
+          })
+
+          return new File([blob], 
+            extension ? file.name.replace(/\.[^.]+$/, extension) : file.name,
+            { type: mimeType }
+          )
         }
-
-        const bitmap = await createImageBitmap(processedFile)
-        canvas.width = bitmap.width
-        canvas.height = bitmap.height
-        
-        const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('Failed to get canvas context')
-        
-        ctx.drawImage(bitmap, 0, 0)
-        
-        const blob = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((b) => resolve(b!), 'image/webp', 0.8)
-        })
-
-        return new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
-          type: 'image/webp'
-        })
+      } catch (webpError) {
+        console.warn('WebP conversion failed:', webpError)
       }
-    } catch (webpError) {
-      console.warn('WebP conversion failed, using compressed file:', webpError)
-      return processedFile  // WebP 转换失败时使用压缩后的文件（或原文件）
     }
 
     return processedFile
   } catch (error) {
-    console.warn('Image processing failed, using original file:', error)
-    return file  // 所有处理失败时使用原文件
+    console.warn('Image processing failed:', error)
+    return file
   }
 }
 
 // 批量处理图片
 export async function processFiles(
   files: File[],
+  options: ProcessingOptions,
   onProgress?: (progress: number) => void
 ): Promise<File[]> {
   const results: File[] = []
@@ -83,7 +108,7 @@ export async function processFiles(
   for (let i = 0; i < files.length; i += BATCH_SIZE) {
     const batch = files.slice(i, i + BATCH_SIZE)
     const processedBatch = await Promise.all(
-      batch.map(file => processImage(file))
+      batch.map(file => processImage(file, options))
     )
     results.push(...processedBatch)
     
@@ -92,4 +117,18 @@ export async function processFiles(
   }
 
   return results
+} 
+
+declare module 'browser-image-compression' {
+  export default function imageCompression(
+    file: File,
+    options: {
+      maxSizeMB?: number
+      maxWidthOrHeight?: number
+      useWebWorker?: boolean
+      maxIteration?: number
+      initialQuality?: number
+      [key: string]: any
+    }
+  ): Promise<File>
 } 
