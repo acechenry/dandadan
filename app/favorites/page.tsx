@@ -14,6 +14,7 @@ const SITE_CONFIG = {
 
 // 定义图片类型
 interface FavoriteImage {
+  Key: string;
   originalName: string
   fileName: string
   url: string
@@ -49,7 +50,10 @@ export default function FavoritesPage() {
       const res = await fetch('/api/favorites')
       if (!res.ok) throw new Error('获取收藏列表失败')
       const data = await res.json()
-      setImages(data)
+      const files = data.map((item: FavoriteImage) => ({
+        // ... 处理数据
+      }))
+      setImages(files)
     } catch (error) {
       console.error('Failed to fetch favorites:', error)
       alert('获取收藏列表失败')
