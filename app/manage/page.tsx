@@ -36,6 +36,7 @@ export default function ManagePage() {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
   const [imageDimensions, setImageDimensions] = useState<{[key: string]: { width: number, height: number }}>({})
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [favoriteImages, setFavoriteImages] = useState<Set<string>>(new Set())
   const router = useRouter()
 
   // 初始主题
@@ -203,6 +204,57 @@ export default function ManagePage() {
     setPreviewImage(null)
   }
 
+  // 添加收藏函数
+  const toggleFavorite = async (fileName: string) => {
+    try {
+      if (favoriteImages.has(fileName)) {
+        const res = await fetch(`/api/favorites/${fileName}`, {
+          method: 'DELETE'
+        })
+        if (!res.ok) throw new Error('取消收藏失败')
+        setFavoriteImages(prev => {
+          const next = new Set(prev)
+          next.delete(fileName)
+          return next
+        })
+      } else {
+        const res = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ fileName })
+        })
+        if (!res.ok) throw new Error('添加收藏失败')
+        setFavoriteImages(prev => new Set([...prev, fileName]))
+      }
+    } catch (error) {
+      console.error('Favorite error:', error)
+      alert('操作失败')
+    }
+  }
+
+  // 在现有的 useEffect 钩子之后添加
+  useEffect(() => {
+    // 获取收藏列表
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch('/api/favorites')
+        if (!res.ok) throw new Error('获取收藏列表失败')
+        const data = await res.json()
+        // 从返回的数据中提取文件名并设置收藏状态
+        const favoriteFileNames = new Set(
+          data.map((item: any) => item.Key.replace('favorites/', ''))
+        )
+        setFavoriteImages(favoriteFileNames)
+      } catch (error) {
+        console.error('Failed to fetch favorites:', error)
+      }
+    }
+
+    fetchFavorites()
+  }, [])
+
   return (
     <div className={`${styles.container} ${isDarkMode ? styles.containerDark : ''}`}>
       {/* 顶栏 */}
@@ -347,6 +399,12 @@ export default function ManagePage() {
                       className={`${styles.copyButton} ${styles.bbcodeButton}`}
                     >
                       {copiedIndex === index ? '已复制' : 'BB'}
+                    </button>
+                    <button
+                      onClick={() => toggleFavorite(image.fileName)}
+                      className={`${styles.copyButton} ${favoriteImages.has(image.fileName) ? styles.favoriteActive : styles.favorite}`}
+                    >
+                      {favoriteImages.has(image.fileName) ? '已收藏' : '收藏'}
                     </button>
                   </div>
                 </div>
