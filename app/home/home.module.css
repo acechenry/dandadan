@@ -312,12 +312,12 @@
 /* 预览卡 - 夜间主题特殊处理 */
 .containerDark .previewCard {
   border: 1px solid var(--preview-border-color);
-  box-shadow: 0 0 5px var(--preview-border-color);
+  box-shadow: 0 0 10px var(--preview-border-color);
 }
 
 .containerDark .previewCard .imagePreview {
   border: 1px solid var(--preview-border-color);
-  box-shadow: 0 0 8px var(--preview-border-color);
+  box-shadow: 0 0 5px var(--preview-border-color);
 }
 
 .containerDark .previewCard .urlInput {
@@ -326,7 +326,7 @@
 
 .containerDark .previewCard .copyButton {
   border: 1px solid var(--preview-border-color);
-  box-shadow: 0 0 2px var(--preview-border-color);
+  box-shadow: 0 0 5px var(--preview-border-color);
 }
 
 /* 夜间主题下的标题和普通按钮文字颜色 */
@@ -343,5 +343,39 @@
 /* 预览区域 - 夜间主题特殊处理 */
 .containerDark .previewArea {
   /* 移除这个样式，保持默认的蓝色边框 */
+}
+
+/* 收藏按钮样式 */
+.favorite {
+  background: var(--blue-primary) !important;
+  color: white !important;
+}
+
+.favoriteActive {
+  background: var(--yellow-primary) !important;
+  color: black !important;
+}
+
+/* 调整按钮组样式 */
+.buttonGroup {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+/* 确保复制按钮和收藏按钮样式一致 */
+.copyButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  opacity: 0.9;
 }
  
