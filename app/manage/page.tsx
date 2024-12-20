@@ -40,9 +40,11 @@ export default function ManagePage() {
 
   // 初始主题
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme === 'dark') {
+        setIsDarkMode(true)
+      }
     }
   }, [])
 
@@ -138,7 +140,7 @@ export default function ManagePage() {
   // 批量删除
   const deleteSelected = async () => {
     if (!selectedImages.size) return
-    if (!confirm(`确定���除选中的 ${selectedImages.size} 张图片吗？`)) return
+    if (!confirm(`确定删除选中的 ${selectedImages.size} 张图片吗？`)) return
 
     try {
       const promises = Array.from(selectedImages).map(fileName =>
@@ -183,7 +185,7 @@ export default function ManagePage() {
           },
           body: JSON.stringify({ fileName })
         })
-        if (!res.ok) throw new Error('添加收���失败')
+        if (!res.ok) throw new Error('添加收藏失败')
         setFavoriteImages(prev => {
           const next = new Set(prev)
           next.add(fileName)
@@ -258,7 +260,9 @@ export default function ManagePage() {
               onClick={() => {
                 const newTheme = !isDarkMode
                 setIsDarkMode(newTheme)
-                localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('theme', newTheme ? 'dark' : 'light')
+                }
               }}
               className={styles.button}
             >
