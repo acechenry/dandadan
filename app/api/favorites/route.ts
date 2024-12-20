@@ -5,7 +5,6 @@ import {
   ListObjectsV2Command 
 } from '@aws-sdk/client-s3'
 import { cookies } from 'next/headers'
-import type { NextRequest } from 'next/server'
 
 const s3Client = new S3Client({
   region: process.env.S3_REGION!,
