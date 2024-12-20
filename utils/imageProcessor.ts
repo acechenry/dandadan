@@ -40,7 +40,7 @@ export async function processImage(file: File, options: ProcessingOptions): Prom
       try {
         processedFile = await imageCompression(file, {
           ...IMAGE_PROCESSING_OPTIONS,
-          useWebP: false // ���压缩和格式转换
+          useWebP: false // 压缩和格式转换
         })
       } catch (compressError) {
         console.warn('Compression failed, using original file:', compressError)
