@@ -457,7 +457,7 @@
   /* 勾选框样式 */
   .imageCheckbox {
     width: 15px;
-    height: 15px;
+    height: 14px;
     cursor: pointer;
     margin: 0;
     -webkit-appearance: none;
@@ -472,7 +472,56 @@
   /* 如果想在focus时有自定义样式，可以添加这个 */
   .imageCheckbox:focus {
     outline: none;
-    /* 可以添加自定义的focus样式，比如: */
+    /* 可以添加��定义的focus样式，比如: */
     /* box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); */
+  }
+  
+  /* 预览模态框 */
+  .previewModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+  }
+  
+  .previewContent {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+  
+  .previewContent img {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+  }
+  
+  /* 修改图片预览区域样式 */
+  .imagePreview {
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  
+  .imagePreview:hover {
+    opacity: 0.9;
   }
   
