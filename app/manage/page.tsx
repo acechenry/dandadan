@@ -138,7 +138,7 @@ export default function ManagePage() {
   // 批量删除
   const deleteSelected = async () => {
     if (!selectedImages.size) return
-    if (!confirm(`确定删除选中的 ${selectedImages.size} 张图片吗？`)) return
+    if (!confirm(`确定���除选中的 ${selectedImages.size} 张图片吗？`)) return
 
     try {
       const promises = Array.from(selectedImages).map(fileName =>
@@ -183,8 +183,12 @@ export default function ManagePage() {
           },
           body: JSON.stringify({ fileName })
         })
-        if (!res.ok) throw new Error('添加收藏失败')
-        setFavoriteImages(prev => new Set([...prev, fileName]))
+        if (!res.ok) throw new Error('添加收���失败')
+        setFavoriteImages(prev => {
+          const next = new Set(prev)
+          next.add(fileName)
+          return next
+        })
       }
     } catch (error) {
       console.error('Favorite error:', error)
@@ -200,10 +204,10 @@ export default function ManagePage() {
         const res = await fetch('/api/favorites')
         if (!res.ok) throw new Error('获取收藏列表失败')
         const data = await res.json()
-        // 从返回的数据中提取文件名并设置收藏状态
-        const fileNames = data.map((item: { Key: string }) => item.Key.replace('favorites/', ''))
-        const favoriteFileNames = new Set<string>(fileNames)
-        setFavoriteImages(favoriteFileNames)
+        const fileNames: string[] = data.map((item: { Key: string }) => 
+          item.Key.replace('favorites/', '')
+        )
+        setFavoriteImages(new Set(fileNames))
       } catch (error) {
         console.error('Failed to fetch favorites:', error)
       }
