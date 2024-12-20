@@ -56,36 +56,47 @@ export default function HomePage() {
   // 设置相关
   const [showSettings, setShowSettings] = useState(false)
   const [settings, setSettings] = useState<ImageProcessingSettings>(() => {
-    // 从 localStorage 读取用户的偏好设置
-    const savedSettings = localStorage.getItem('imageProcessingSettings')
-    return savedSettings ? JSON.parse(savedSettings) : {
+    // 默认设置
+    const defaultSettings = {
       enableCompression: false,
       enableWebP: false
     }
+
+    // 只在客户端读取设置
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem('imageProcessingSettings')
+      return savedSettings ? JSON.parse(savedSettings) : defaultSettings
+    }
+
+    return defaultSettings
   })
 
   // 保存设置
   const saveSettings = (newSettings: ImageProcessingSettings) => {
     setSettings(newSettings)
-    localStorage.setItem('imageProcessingSettings', JSON.stringify(newSettings))
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('imageProcessingSettings', JSON.stringify(newSettings))
+    }
   }
 
   // 初始化主题
   useEffect(() => {
-    // 从 localStorage 获取主题设置
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true)
+    // 只在客户端访问 localStorage
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme === 'dark') {
+        setIsDarkMode(true)
+      }
     }
   }, [])
 
-  // 主题切换
+  // 切换主题时
   const toggleTheme = () => {
-    setIsDarkMode(prev => {
-      const newTheme = !prev
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
+    if (typeof window !== 'undefined') {
       localStorage.setItem('theme', newTheme ? 'dark' : 'light')
-      return newTheme
-    })
+    }
   }
 
   // 处理拖拽事件
